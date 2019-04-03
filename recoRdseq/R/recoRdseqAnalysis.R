@@ -234,12 +234,12 @@ recoRdSeqAnalysis  <- function(
   CountsPlots_figures<-list()
   CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=MeanGenomeCounts, x=as.character(CountsPlots[,1])))+
     geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-    coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_classic(base_size = 12)+
+    coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_classic()+
     geom_errorbar(ymin=MeanGenomeCounts-GenomeCountSEs, ymax=MeanGenomeCounts+GenomeCountSEs,linetype=5, width = 0.1, color="darkblue")+
     xlab(colnames(design)[1])+ ylab("Mean genome-mapping spacer counts")
   CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=MeanPlasmidCounts, x=as.character(CountsPlots[,1])))+
     geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-    coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_classic(base_size = 12)+ ylab("Mean plasmid-mapping spacer counts")+
+    coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_classic()+ ylab("Mean plasmid-mapping spacer counts")+
     geom_errorbar(ymin=MeanPlasmidCounts-PlasmidCountSEs, ymax=MeanPlasmidCounts+PlasmidCountSEs,linetype=5, width = 0.1, color="darkblue" )+
     xlab(colnames(design)[1])
   CountsPlots_figures
@@ -325,7 +325,7 @@ recoRdSeqAnalysis  <- function(
       GeneBoxPlots$SampleIDs<-as.character(rep(paste0('S',1:dim(data)[2]), dim(GeneBoxPlots)[1]/dim(data)[2]))
       GeneBoxPlots$SampleIDs<-factor(GeneBoxPlots$SampleID, GeneBoxPlots$SampleID[1:dim(data)[2]])
       ggplot(data=GeneBoxPlots, aes(x=SampleIDs,y=transformed_SpacerCounts))+
-        geom_boxplot(aes(fill=design))+theme_classic(base_size = 12)+
+        geom_boxplot(aes(fill=design))+theme_classic()+
         xlab("Sample ID") + ylab(paste0(as.character(transformation), " transformed gene-mapping spacer counts"))+ggtitle(paste0(as.character(transformation), " transformed gene-mapping spacer counts for top ", as.character(no), " genes"))+theme(axis.text.x = element_text(angle = 90, hjust = 1))
       ggsave(paste0(outPath, "/GeneBoxPlots_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
     }
@@ -339,13 +339,13 @@ recoRdSeqAnalysis  <- function(
       all_pca[,no+1]<-as.character(design[,i])
       colnames(all_pca)[no+1]<-colnames(design)[i]
       colnames(all_pca)[1:no]<-1:no
-      autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_bw(base_size = 12)+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance"))
+      autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_bw()+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
       ggsave(paste0(outPath, "/PCA_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
       if(clustering){
-        autoplot(fanny(all_pca[,1:no], K), data = all_pca, size=4,shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') + theme_bw(base_size = 12) + ggtitle(paste0("FANNY clustering for top ", as.character(no)," genes sorted by variance"))
+        autoplot(fanny(all_pca[,1:no], K), data = all_pca, size=4,shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') + theme_bw() + ggtitle(paste0("FANNY clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
         ggsave(paste0(outPath, "/FANNY_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
         set.seed(1)
-        autoplot(kmeans(all_pca[,1:no], K), data = all_pca, size=4, shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') +  theme_bw(base_size = 12) + ggtitle(paste0("K-means clustering for top ", as.character(no)," genes sorted by variance"))
+        autoplot(kmeans(all_pca[,1:no], K), data = all_pca, size=4, shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') +  theme_bw() + ggtitle(paste0("K-means clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
         ggsave(paste0(outPath, "/KMeans_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
       }
     }
