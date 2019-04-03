@@ -1,0 +1,12 @@
+genome: 'NC_012947.1'
+genomepath: '../genomes'
+datafolder: './fastqs'
+dr1: 'GAATTGAAAC'
+dr2: 'GTCGTACTTT'
+drfull: 'GTCGTACTTTACCTAAAAGGAATTGAAAC'
+plasmid: 'pFS_0453'
+scriptPath: '../scripts'
+library_barcode: 'CTCACACTATGATCTAGG'
+infofile: "False"
+
+

@@ -1,0 +1,189 @@
+## Tanmay Tanna
+## March 30, 2019
+
+from snakemake.utils import R
+import glob, os, logging, json, fnmatch, numpy, pandas
+
+
+# Globals ---------------------------------------------------------------------
+
+configfile: "config.yml"
+
+DATAPATH = config["datafolder"]
+
+os.system("mkdir -p intermediates intermediates/fastas intermediates/fastqc intermediates/trimmedFastqs outputs")
+
+SAMPLES, =  glob_wildcards(DATAPATH+"/{sample}.fastq.gz")
+
+# define genome path
+
+GENOMEPATH=config["genomepath"]
+
+# define path where scripts are stored 
+
+SCRIPTPATH = config["scriptPath"]
+
+# initialize global values from config file 
+
+GENOME=config["genome"]
+DR1 = config["dr1"]
+DR2 = config["dr2"]
+DRFULL = config["drfull"]
+LBC=config["library_barcode"]
+PLASMID = config["plasmid"]
+infoFile = config["infofile"]
+
+# add headers to the summary stats 
+
+summaryStatsheader=str('echo'+' '+'"'+'sampleName'+'\t'+'totalReads'+'\t'+'nonLibraryBarcodeRead%'+'\t'+'identifiedSpacers'+'\t'+'uniqueSpacers'+'\t'+'allDoubleAcquisitions'+'\t'+'allDoubleAcquisitions.paired'+'\t'+'allMultipleAcquisitions'+'\t'+'allMultipleAcquisitions.complete'+'\t'+'uniqueSingleAcquisitions'+'\t'+'uniqueDoubleAcquisitions'+'\t'+'uniqueMultipleAcquisitions'+'"'+'>'+'summaryStats.txt')
+uniqueCountStatsheader=str('echo'+' '+'"'+'sampleName'+'\t'+'totalReads'+'\t'+'genomeCounts'+'\t'+'plasmidCounts'+'"'+'>'+'outputs/countsMatrices/totalCounts.txt')
+if not os.path.isfile("summaryStats.txt"):
+    os.system(summaryStatsheader)
+
+# print list of samples 
+
+print("list of samples:")
+print(SAMPLES) 
+
+localrules: all
+
+rule all:
+    input:
+        expand("fastqs/{sample}.fastq.gz", sample = SAMPLES),
+        expand("intermediates/trimmedFastqs/{sample}.fastq.gz", sample = SAMPLES),
+        expand("intermediates/fastas/{sample}.fasta", sample = SAMPLES),
+        expand("outputs/spacers/{sample}.all.fasta", sample = SAMPLES),
+        expand("outputs/spacers/{sample}.unique.fasta", sample = SAMPLES),
+        expand("outputs/alignments/genomeBams/{sample}.bam", sample = SAMPLES),
+        expand("outputs/alignments/plasmidBams/{sample}.bam", sample = SAMPLES),
+        "outputs/countsMatrices/genomeCounts.txt",
+        "outputs/countsMatrices/plasmidCounts.txt",
+        
+
+# Run fastqc and trimmomatic
+
+rule run_fastqc_trimmomatic:
+    input: 
+        "fastqs/{sample}.fastq.gz"
+    output:
+        "intermediates/trimmedFastqs/{sample}.fastq.gz",
+        "intermediates/fastqc/{sample}_fastqc.html"
+    threads: 16
+    run:
+        trimmomaticoutput=output[0]
+        shell('fastqc -t {threads} {input} --outdir intermediates/fastqc')
+        shell('java -jar {SCRIPTPATH}/trimmomatic-0.36.jar SE -threads 4 {input} {trimmomaticoutput} LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:75') #assumes trimmomatic JAR file is saved in SCRIPTPATH
+        
+
+#convert fastqs to fasta
+
+rule fastq_to_fasta:
+    input:
+        "intermediates/trimmedFastqs/{sample}.fastq.gz"
+    output:
+        "intermediates/fastas/{sample}.fasta"
+    shell:
+        'gunzip -c {input} | fastq_to_fasta -o {output}'
+
+# run spacer extractor
+
+rule spacer_extractor:
+    input:
+        "intermediates/fastas/{sample}.fasta"
+    output:
+        "outputs/spacers/{sample}.all.fasta",
+        "outputs/spacers/{sample}.unique.fasta"
+    run:
+        outfile=output[0][:-10]
+        outfile=outfile.split("/")[-1]
+        if "True" in infoFile or "true" in infoFile:
+            shell('python3 {SCRIPTPATH}/spacerExtractor.py --inFile {input} --outPath "outputs/spacers/" --outName {outfile} --drOne {DR1} --drTwo {DR2} --drFull {DRFULL} --LBC {LBC} --infoFile')
+        else:
+            shell('python3 {SCRIPTPATH}/spacerExtractor.py --inFile {input} --outPath "outputs/spacers/" --outName {outfile} --drOne {DR1} --drTwo {DR2} --drFull {DRFULL} --LBC {LBC} --no-infoFile')
+
+
+
+# run bowtie alignment and get bam files 
+
+rule bowtie_alignment:
+    input:
+        "outputs/spacers/{sample}.unique.fasta" 	
+    output:
+        "outputs/alignments/genomeBams/{sample}.bam", 
+        "outputs/alignments/plasmidBams/{sample}.bam"
+    threads: 16
+    run:
+        shell('mkdir -p "outputs/alignments" "outputs/countsMatrices" "outputs/alignments/mergedSams" "outputs/alignments/mergedBams" "outputs/alignments/plasmidBams" "outputs/alignments/plasmidFastas" "outputs/alignments/genomeBams" "outputs/alignments/genomeFastas"')
+        if not os.path.isfile("outputs/countsMatrices/totalCounts.txt"):
+            os.system(uniqueCountStatsheader)
+
+        j = str(input).split('/')[-1]
+        k = j.split('.')[0]
+        fastaFile="intermediates/fastas/"+k+".fasta"
+        f = open(fastaFile)
+        totalReads = 0
+        for line in f:
+            if line.startswith(">"):
+                totalReads += 1
+        f.close()
+
+        shell('bowtie2 -p {threads} --local -D 20 -R 3 -N 1 -L 20 -i S,1,0.50 -f --no-unal -x {GENOMEPATH}/{GENOME}.{PLASMID}/{GENOME}.{PLASMID} -U outputs/spacers/{j} -S outputs/alignments/mergedSams/{k}.sam')
+        shell('python3 {SCRIPTPATH}/SErmdup.py -i outputs/alignments/mergedSams/{k}.sam -o outputs/alignments/mergedSams/{k}.rmdup.sam')
+        shell('samtools view -bS outputs/alignments/mergedSams/{k}.rmdup.sam -o outputs/alignments/mergedBams/{k}.merged.bam')
+        shell('samtools sort outputs/alignments/mergedBams/{k}.merged.bam -o outputs/alignments/mergedBams/{k}.bam')
+        shell('samtools index outputs/alignments/mergedBams/{k}.bam')
+        shell('samtools view outputs/alignments/mergedBams/{k}.bam {GENOME} -b > outputs/alignments/genomeBams/{k}.bam')
+        shell('samtools view outputs/alignments/mergedBams/{k}.bam {PLASMID} -b > outputs/alignments/plasmidBams/{k}.bam')
+        shell('samtools index outputs/alignments/genomeBams/{k}.bam')
+        shell('samtools index outputs/alignments/plasmidBams/{k}.bam')
+        shell('samtools fasta outputs/alignments/genomeBams/{k}.bam -0 outputs/alignments/genomeFastas/{k}.fasta')
+        shell('samtools fasta outputs/alignments/plasmidBams/{k}.bam -0 outputs/alignments/plasmidFastas/{k}.fasta')
+        genomeFastaFile="outputs/alignments/genomeFastas/"+k+".fasta"
+        genomeCounts= 0
+        f = open(genomeFastaFile)
+        for line in f:
+            if line.startswith(">"):
+                genomeCounts += 1
+        f.close()
+        plasmidFastaFile="outputs/alignments/plasmidFastas/"+k+".fasta"
+        f = open(plasmidFastaFile)
+        plasmidCounts= 0
+        for line in f:
+            if line.startswith(">"):
+                plasmidCounts += 1
+        f.close()
+        printCounts = "printf "+str(k)+"'\t'"+str(totalReads)+"'\t'"+str(genomeCounts)+"'\t'"+str(plasmidCounts)+"'\n' >> outputs/countsMatrices/totalCounts.txt"
+        os.system(printCounts)
+
+       
+# run featurecounts to generate counts matrices 
+
+rule featurecounts:
+    input:
+        expand("outputs/alignments/genomeBams/{sample}.bam", sample = SAMPLES),
+        expand("outputs/alignments/plasmidBams/{sample}.bam", sample = SAMPLES) 
+    output:
+        "outputs/countsMatrices/genomeCounts.txt",
+        "outputs/countsMatrices/plasmidCounts.txt"
+    threads: 16
+    run:
+        tempuniquegenomebams = [f for f in os.listdir("outputs/alignments/genomeBams") if fnmatch.fnmatch(f, '*.bam')]
+        uniquegenomebams=""
+        for k in tempuniquegenomebams:
+            uniquegenomebams=uniquegenomebams+" "+"outputs/alignments/genomeBams/"+k 
+        tempuniqueplasmidbams = [f for f in os.listdir("outputs/alignments/plasmidBams") if fnmatch.fnmatch(f, '*.bam')]
+        uniqueplasmidbams=""
+        for k in tempuniqueplasmidbams:
+            uniqueplasmidbams=uniqueplasmidbams+" "+"outputs/alignments/plasmidBams/"+k 
+
+        shell('featureCounts -M -O -s 0 -T {threads} -t exon -g exon_id -a {GENOMEPATH}/{GENOME}/{GENOME}.gff3 -o outputs/countsMatrices/genomeCounts.txt {uniquegenomebams}')
+        shell('featureCounts -M -O -s 0 -T {threads} -t exon -g exon_id -a {GENOMEPATH}/{PLASMID}/{PLASMID}.gff3 -o outputs/countsMatrices/plasmidCounts.txt {uniqueplasmidbams}')
+        shell('tail -n +2 outputs/countsMatrices/plasmidCounts.txt > outputs/countsMatrices/plasmidCounts.tmp.txt && mv outputs/countsMatrices/plasmidCounts.tmp.txt  outputs/countsMatrices/plasmidCounts.txt')
+        shell('tail -n +2 outputs/countsMatrices/genomeCounts.txt > outputs/countsMatrices/GenomeCounts.tmp.txt && mv outputs/countsMatrices/GenomeCounts.tmp.txt  outputs/countsMatrices/genomeCounts.txt')
+        
+
+         
+
+
+
+
