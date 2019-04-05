@@ -14,7 +14,7 @@ recoRdSeqAnalysis  <- function(
   minCountsPerSample = 100, # minimum number of total counts in a sample or it is excluded from analysis
   geneBoxAndWhiskerPlots = TRUE,
   transformation = "rlog", # Data transformation prior to plotting gene count boxplots and PCA - can be "log2", "rlog", "vst", "tmm" or NULL
-  clustering = TRUE,
+  clustering = FALSE,
   PCAplots = TRUE,
   vennDiagrams = TRUE,
   processInput = TRUE
