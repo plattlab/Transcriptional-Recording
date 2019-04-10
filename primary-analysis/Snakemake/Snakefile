@@ -1,5 +1,5 @@
 ## Tanmay Tanna
-## March 30, 2019
+## April 10th, 2019
 
 from snakemake.utils import R
 import glob, os, logging, json, fnmatch, numpy, pandas
@@ -49,7 +49,7 @@ localrules: all
 
 rule all:
     input:
-        expand("fastqs/{sample}.fastq.gz", sample = SAMPLES),
+        expand(DATAPATH+"/{sample}.fastq.gz", sample = SAMPLES),
         expand("intermediates/trimmedFastqs/{sample}.fastq.gz", sample = SAMPLES),
         expand("intermediates/fastas/{sample}.fasta", sample = SAMPLES),
         expand("outputs/spacers/{sample}.all.fasta", sample = SAMPLES),
@@ -64,7 +64,7 @@ rule all:
 
 rule run_fastqc_trimmomatic:
     input: 
-        "fastqs/{sample}.fastq.gz"
+        DATAPATH+"/{sample}.fastq.gz"
     output:
         "intermediates/trimmedFastqs/{sample}.fastq.gz",
         "intermediates/fastqc/{sample}_fastqc.html"
