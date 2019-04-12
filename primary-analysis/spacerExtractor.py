@@ -1,16 +1,5 @@
-# March 13, 2019
+# April 12, 2019
 # Tanmay Tanna
-# V27
-
-####################################################################################################
-# CRISPR spacer extractor for SENECA readout. 
-# Description: With an input directory containing fasta files, this script uses Levenshtein distance to 
-# identify the partial DRs and intervening spacer
-# Identify Multiple Acquisitions, also adds sequence of multiple acquisitions
-# Identify Unique spacers 
-# Identify reads with no library identifier
-
-####################################################################################################
 
 from __future__ import division
 import sys, os, argparse, operator, numpy, pandas, fuzzysearch
@@ -143,7 +132,9 @@ if ('.fasta' in inFile):
     K = open(outPath+outName+'.all.fasta',mode='w')
     MC = open(outPath+outName+'.multipleAcquisitions.complete.fasta',mode='w') # multiple acquisitions with all spacers
     M = open(outPath+outName+'.multipleAcquisitions.fasta',mode='w')
-    SS = open("summaryStats.txt", mode = 'a')
+    if not os.path.exists('outputs'):
+        os.makedirs('outputs')
+    SS = open("outputs/summaryStats.txt", mode = 'a')
     if infoFile:
         GC = open(outPath+outName+'.info.txt',mode='w')
         GC.write("Unique_Spacer_Sequence"+'\t'+"Sequence_Length"+'\t'+"GC_content"+'\n')

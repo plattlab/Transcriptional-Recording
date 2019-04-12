@@ -35,9 +35,9 @@ infoFile = config["infofile"]
 
 # add headers to the summary stats 
 
-summaryStatsheader=str('echo'+' '+'"'+'sampleName'+'\t'+'totalReads'+'\t'+'nonLibraryBarcodeRead%'+'\t'+'identifiedSpacers'+'\t'+'uniqueSpacers'+'\t'+'allDoubleAcquisitions'+'\t'+'allDoubleAcquisitions.paired'+'\t'+'allMultipleAcquisitions'+'\t'+'allMultipleAcquisitions.complete'+'\t'+'uniqueSingleAcquisitions'+'\t'+'uniqueDoubleAcquisitions'+'\t'+'uniqueMultipleAcquisitions'+'"'+'>'+'summaryStats.txt')
+summaryStatsheader=str('echo'+' '+'"'+'sampleName'+'\t'+'totalReads'+'\t'+'nonLibraryBarcodeRead%'+'\t'+'identifiedSpacers'+'\t'+'uniqueSpacers'+'\t'+'allDoubleAcquisitions'+'\t'+'allDoubleAcquisitions.paired'+'\t'+'allMultipleAcquisitions'+'\t'+'allMultipleAcquisitions.complete'+'\t'+'uniqueSingleAcquisitions'+'\t'+'uniqueDoubleAcquisitions'+'\t'+'uniqueMultipleAcquisitions'+'"'+'>'+'outputs/summaryStats.txt')
 uniqueCountStatsheader=str('echo'+' '+'"'+'sampleName'+'\t'+'totalReads'+'\t'+'genomeCounts'+'\t'+'plasmidCounts'+'"'+'>'+'outputs/countsMatrices/totalCounts.txt')
-if not os.path.isfile("summaryStats.txt"):
+if not os.path.isfile("outputs/summaryStats.txt"):
     os.system(summaryStatsheader)
 
 # print list of samples 
