@@ -214,35 +214,51 @@ recoRdSeqAnalysis  <- function(
 
 
 .PlotCounts <- function(totalCounts, design){
-  CountsPlots <-data.frame(unique(design))
-  colnames(CountsPlots)<-colnames(design)
-  MeanGenomeCounts<-c()
-  GenomeCountSEs<-c() #SE = standard error
-  MeanPlasmidCounts<-c()
-  PlasmidCountSEs<-c()
-
-  for(k in 1:dim(CountsPlots)[1]) {
-    MeanGenomeCounts<-c(MeanGenomeCounts, mean(totalCounts$genomeCounts[which(design[,1]==CountsPlots[k,1])]))
-    GenomeCountSEs<-c(GenomeCountSEs, sd(totalCounts$genomeCounts[which(design[,1]==CountsPlots[k,1])])/sqrt(length(which(design[,1]==CountsPlots[k,1]))))
-    MeanPlasmidCounts<-c(MeanPlasmidCounts, mean(totalCounts$plasmidCounts[which(design[,1]==CountsPlots[k,1])]))
-    PlasmidCountSEs<-c(PlasmidCountSEs, sd(totalCounts$plasmidCounts[which(design[,1]==CountsPlots[k,1])])/sqrt(length(which(design[,1]==CountsPlots[k,1]))))
-    }
-
-  CountsPlots<-cbind(CountsPlots, MeanGenomeCounts, MeanPlasmidCounts, GenomeCountSEs, PlasmidCountSEs)
-  CountsPlots[is.na(CountsPlots)]=0
-
+  if(rownames(totalCounts)==rownames(design)){
+    totalCounts$samples<-factor(rownames(totalCounts), rownames(totalCounts))
+    design$samples<-factor(rownames(design), rownames(design))
+    CountsPlots<-merge(totalCounts, design, by="samples")
+  }
   CountsPlots_figures<-list()
-  CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=MeanGenomeCounts, x=as.character(CountsPlots[,1])))+
-    geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-    coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_classic()+
-    geom_errorbar(ymin=MeanGenomeCounts-GenomeCountSEs, ymax=MeanGenomeCounts+GenomeCountSEs,linetype=5, width = 0.1, color="darkblue")+
-    xlab(colnames(design)[1])+ ylab("Mean genome-mapping spacer counts")
-  CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=MeanPlasmidCounts, x=as.character(CountsPlots[,1])))+
-    geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-    coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_classic()+ ylab("Mean plasmid-mapping spacer counts")+
-    geom_errorbar(ymin=MeanPlasmidCounts-PlasmidCountSEs, ymax=MeanPlasmidCounts+PlasmidCountSEs,linetype=5, width = 0.1, color="darkblue" )+
-    xlab(colnames(design)[1])
+  CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=genomeCounts, x=samples,fill=as.character(CountsPlots[,5])))+
+    geom_bar(stat="identity", width=0.3)+
+    coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$genomeCounts))) + theme_classic()+
+    xlab("Samples")+ ylab("Mean genome-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=plasmidCounts, x=samples,fill=as.character(CountsPlots[,5])))+
+    geom_bar(stat="identity", width=0.3)+
+    coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$plasmidCounts))) + theme_classic()+
+    xlab("Samples")+ ylab("Mean plasmid-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
   CountsPlots_figures
+  ## For calculating mean counts and plotting with SEs ##
+  # CountsPlots <-data.frame(unique(design))
+  # colnames(CountsPlots)<-colnames(design)
+  # MeanGenomeCounts<-c()
+  # GenomeCountSEs<-c() #SE = standard error
+  # MeanPlasmidCounts<-c()
+  # PlasmidCountSEs<-c()
+  # 
+  # for(k in 1:dim(CountsPlots)[1]) {
+  #   MeanGenomeCounts<-c(MeanGenomeCounts, mean(totalCounts$genomeCounts[which(design[,1]==CountsPlots[k,1])]))
+  #   GenomeCountSEs<-c(GenomeCountSEs, sd(totalCounts$genomeCounts[which(design[,1]==CountsPlots[k,1])])/sqrt(length(which(design[,1]==CountsPlots[k,1]))))
+  #   MeanPlasmidCounts<-c(MeanPlasmidCounts, mean(totalCounts$plasmidCounts[which(design[,1]==CountsPlots[k,1])]))
+  #   PlasmidCountSEs<-c(PlasmidCountSEs, sd(totalCounts$plasmidCounts[which(design[,1]==CountsPlots[k,1])])/sqrt(length(which(design[,1]==CountsPlots[k,1]))))
+  #   }
+  # 
+  # CountsPlots<-cbind(CountsPlots, MeanGenomeCounts, MeanPlasmidCounts, GenomeCountSEs, PlasmidCountSEs)
+  # CountsPlots[is.na(CountsPlots)]=0
+  # 
+  # CountsPlots_figures<-list()
+  # CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=MeanGenomeCounts, x=as.character(CountsPlots[,1])))+
+  #   geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
+  #   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_classic()+
+  #   geom_errorbar(ymin=MeanGenomeCounts-GenomeCountSEs, ymax=MeanGenomeCounts+GenomeCountSEs,linetype=5, width = 0.1, color="darkblue")+
+  #   xlab(colnames(design)[1])+ ylab("Mean genome-mapping spacer counts")
+  # CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=MeanPlasmidCounts, x=as.character(CountsPlots[,1])))+
+  #   geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
+  #   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_classic()+ ylab("Mean plasmid-mapping spacer counts")+
+  #   geom_errorbar(ymin=MeanPlasmidCounts-PlasmidCountSEs, ymax=MeanPlasmidCounts+PlasmidCountSEs,linetype=5, width = 0.1, color="darkblue" )+
+  #   xlab(colnames(design)[1])
+  # CountsPlots_figures
 }
 
 .DEStats <- function(DEList, outPath, designFormula, K, vennDiagrams, geneBoxAndWhiskerPlots=TRUE, totalCountsFile, PCAplots=TRUE, clustering=TRUE, no=no, transformation) {         # formula to be used for Differential Expression.
