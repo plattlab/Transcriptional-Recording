@@ -4,7 +4,7 @@ This repository contains python scripts and a R package for analysing datasets g
 
 ## Getting Started
 
-Download the scripts within the ```primary-analysis``` directory and save the ```spacerExtractor.py``` and ```SErmdup.py``` scripts in your preferred directory. Create a dedicated directory for the analysis of your experiment either typing ```$ mkdir experimentDirectory``` in a bash session or using your UI at your preferred path and save the ```Snakefile``` and ```config.yml``` file within this directory. 
+Download the scripts within the ```primary-analysis``` directory and save the ```spacerExtractor.py``` and ```SErmdup.py``` scripts in your preferred scripts directory. Create a dedicated directory for the analysis of your experiment at your preferred path - by either typing ```$ mkdir experimentDirectory``` in a bash session or using your UI. Download and save the ```Snakefile``` and ```config.yml``` file within this directory. 
 
 Further, from within a session of R \(using RStudio or an R session within bash \), download the ```recoRdseq``` R package using:
 
@@ -14,8 +14,14 @@ Further, from within a session of R \(using RStudio or an R session within bash 
 > install_github("plattlab/Transcriptional-Recording", subdir="recoRdseq")
 ```
 
+## Installing dependencies
 
 
+
+
+## License
+
+This repository is licensed under the Apache License Version 2.0
 
 ## Authors
 
