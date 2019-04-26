@@ -75,7 +75,7 @@ recoRdSeqAnalysis  <- function(
     totalCounts<-totalCounts[match(rownames(design),rownames(totalCounts)),]
     idx <- which(colSums(data)<minCountsPerSample)
     if (length(idx)>0) {
-      design<-design[-idx,]
+      design<-design[-idx, ,drop=FALSE]
       totalCounts<-totalCounts[-idx,]
       data<-data[,-idx]
     }
@@ -85,7 +85,7 @@ recoRdSeqAnalysis  <- function(
   } else {
     idx <- which(colSums(data)<minCountsPerSample)
     if (length(idx)>0) {
-      design<-design[-idx,]
+      design<-design[-idx, ,drop=FALSE]
       data<-data[,-idx]
     }
 
