@@ -138,13 +138,13 @@ recoRdSeqAnalysis  <- function(
     libsizes(cD) <- getLibsizes(cD)
     cD <- getPriors.NB(cD,  samplesize = 1000, cl = NULL)
     cD <- getLikelihoods(cD)
-    cD@annotation <- data.frame(geneID = genenames)
+    cD@annotation <- data.frame(annotation = genenames)
     res<-topCounts(cD,group= colnames(design)[1],number=nrow(data))
     sizes<-as.numeric(libsizes(cD)/median(libsizes(cD)))
     baseMean<-rowMeans(t(t(data)/sizes))
     class<-unique(design[,1])
     log2FC<-rowMeans(t(t(data[,which(design[,1]==class[2])])/sizes[which(design[,1]==class[2])]))/rowMeans(t(t(data[,which(design[,1]==class[1])])/sizes[which(design[,1]==class[1])])) #reports log2FC of the first two classes by default
-    out<-data.frame(geneID=res$geneID,order=rownames(res),baseMean=baseMean,log2FC=log2FC,padj=res[,dim(res)[2]-1], res[,c((dim(res)[2]-3):dim(res)[2])])
+    out<-data.frame(geneID=res$annotation,order=rownames(res),baseMean=baseMean,log2FC=log2FC,padj=res[,dim(res)[2]-1], res[,c((dim(res)[2]-3):dim(res)[2])])
     out
 }
 
