@@ -1,2 +1,5 @@
 
 .DS_Store
+.Rdata
+.Rhistory
+.Rapp.history
