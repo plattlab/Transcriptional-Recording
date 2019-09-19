@@ -180,7 +180,7 @@ recoRdSeqAnalysis  <- function(
     res<-qlf[oe,]
     baseMean<-rowMeans(t(t(data)/y$samples$norm.factors))
     b<-match(rownames(res),rownames(data))
-    out<-data.frame(geneID=rownames(res),order=b,baseMean=baseMean, res)
+    out<-data.frame(geneID=rownames(res),order=b,baseMean=baseMean[b], res)
     out
   } else if (output=="tmm"){
     tmm <- as.data.frame(cpm(y))
