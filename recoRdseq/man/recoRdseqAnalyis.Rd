@@ -50,16 +50,3 @@ recordSeqAnalysis (
 }
   \item{ProcessInput}{ProcessInput
 }
-
-\value{ None
-}
-\author{
-   Michal Okoniewski, Tanmay Tanna
-}
-\examples{
-#recordSeqAnalysis (
-#  FeatureCounts = "../data_Tanmay_paraquat/UMIGenomeCounts2.txt",    #count table
-#  designMatrix = "../data_Tanmay_paraquat/DesignMatrix_timepoint3.xlsx",
-# TotalCountsbySample = "../data_Tanmay_paraquat/TotalCountsbySample.txt",
-# outPath = "./output")
-}
