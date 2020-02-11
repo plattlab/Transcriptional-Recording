@@ -33,7 +33,7 @@ recoRdSeqAnalysis  <- function(
   # Read in design matrix
   design <- as.data.frame(read_excel(designMatrix))
   rownames(design) <- design[,1]
-  design <- design[,-1]
+  design <- design[,-1, drop=FALSE]
 
   if(!dir.exists(outPath)){dir.create(outPath)}
 
@@ -139,7 +139,7 @@ recoRdSeqAnalysis  <- function(
   if (missing(designFormula)){
     designFormula=paste0("~", colnames(colData))
   }
-  dds <- DESeqDataSetFromMatrix(countData = data,colData = colData,design = formula(designFormula) )
+  dds <- DESeqDataSetFromMatrix(countData = data, colData = colData, design = formula(designFormula))
   if(dim(design)[2]==1 & length(unique(design[,1]))==2){
     dds <- DESeq(dds) # Wald test for pairwise
   } else {
