@@ -1,6 +1,6 @@
 ## Load Packages ##
 x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer")
-lapply(x, require, character.only = TRUE)
+invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 
 recoRdSeqAnalysis  <- function(
@@ -11,7 +11,7 @@ recoRdSeqAnalysis  <- function(
   designFormula =  NA,
   nGenes = 50, # no of top genes for gene box plots (counts) and PCA (variance)
   K = 2, # initialization value for K-means/ FANNY clustering
-  minCountsPerSample = 100, # minimum number of total counts in a sample or it is excluded from analysis
+  minCountsPerSample = 500, # minimum number of total counts in a sample or it is excluded from analysis
   geneBoxAndWhiskerPlots = TRUE,
   transformation = "rlog", # Data transformation prior to plotting gene count boxplots and PCA - can be "log2", "rlog", "vst", "tmm" or NULL
   clustering = FALSE,
@@ -27,13 +27,13 @@ recoRdSeqAnalysis  <- function(
   }
   rownames(data)<-data[,1]
   data<-data[,-c(1:6)]
-  data<-data[which(rowSums(data)>2),]
+  data<-data[which(rowSums(data)>as.numeric(quantile(rowSums(data))[2])),]
   no=nGenes
 
   # Read in design matrix
   design <- as.data.frame(read_excel(designMatrix))
   rownames(design) <- design[,1]
-  design <- design[-1]
+  design <- design[,-1]
 
   if(!dir.exists(outPath)){dir.create(outPath)}
 
@@ -56,6 +56,7 @@ recoRdSeqAnalysis  <- function(
   }
   data<-as.data.frame(DEList[[1]])
   design<-as.data.frame(DEList[[2]])
+  DEList<-.removeOutliers(data, design)
   if(!is.null(totalCountsFile)){
     totalCounts<-as.data.frame(DEList[[3]])
   }
@@ -94,6 +95,39 @@ recoRdSeqAnalysis  <- function(
   }
 }
 
+.removeOutliers<-function(data, design, Z_max=2.5)
+{
+  design_o<-design[order(design[,1]),]
+  replicates<-c()
+  rep=1
+  for(rw in 1:dim(design_o)[1]){
+    if(rw>1) {
+      if(isTRUE(all.equal(design_o[rw,],design_o[rw-1,],check.attributes = FALSE)))
+      {
+        replicates<-c(replicates,rep)
+      } else {
+        rep=rep+1
+        replicates<-c(replicates,rep)
+      }
+    } else {
+      replicates<-c(replicates,rep)
+    }
+  }
+  data_o<-data[, ,match(rownames(design_o),colnames(data))]
+  rep_rm<-data.frame(replicates, colSums(data_o))
+  rownames(rep_rm)<-rownames(design_o)
+  replicates<-unique(replicates)
+  Z<-c()
+  for(i in 1:length(replicates)){
+    xm<-median(rep_rm[which(rep_rm[,1]==replicates[i]),2])
+    mad<-median(abs(rep_rm[which(rep_rm[,1]==replicates[i]),2]-xm))
+    Z<-c(Z,0.675*(rep_rm[which(rep_rm[,1]==replicates[i]),2]-xm)/mad)
+  }
+  design_o<-design_o[-which(abs(Z)>Z_max),]
+  design<-design[which(rownames(design)%in%rownames(design_o)),]
+  data<-data[,which(colnames(data)%in%rownames(design))]
+  list(data,design)
+}
 .deseq<-function(data, design, designFormula, output="result") # output can also be "rlog" for rlog transformed counts
 {
   data<-apply(data, c(1,2), round)
@@ -221,11 +255,11 @@ recoRdSeqAnalysis  <- function(
   }
   CountsPlots_figures<-list()
   CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=genomeCounts, x=samples,fill=as.character(CountsPlots[,5])))+
-    geom_bar(stat="identity", width=0.3)+
+    geom_bar(stat="summary", , funy='mean', width=0.3)+
     coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$genomeCounts))) + theme_classic()+
     xlab("Samples")+ ylab("Mean genome-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
   CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=plasmidCounts, x=samples,fill=as.character(CountsPlots[,5])))+
-    geom_bar(stat="identity", width=0.3)+
+    geom_bar(stat="summary", , funy='mean', width=0.3)+
     coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$plasmidCounts))) + theme_classic()+
     xlab("Samples")+ ylab("Mean plasmid-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
   CountsPlots_figures
@@ -270,8 +304,7 @@ recoRdSeqAnalysis  <- function(
   if(!is.null(totalCountsFile)){
     totalCounts<-as.data.frame(DEList[[3]])
   }
-  sds <- apply(data, 1, sd)
-  o <- order(sds, decreasing = TRUE)
+  
 
   union_de <- list()
   union_de_pval <-list()
@@ -351,6 +384,8 @@ recoRdSeqAnalysis  <- function(
       if(dim(data)[1]<no) {
         no=dim(data)[1]
       }
+      sds <- apply(data_transformed, 1, sd)
+      o <- order(sds, decreasing = TRUE)
       all_pca<-as.data.frame(t(data_transformed[o[1:no],]))
       all_pca[,no+1]<-as.character(design[,i])
       colnames(all_pca)[no+1]<-colnames(design)[i]
@@ -369,7 +404,7 @@ recoRdSeqAnalysis  <- function(
     ## DIFFERENTIAL EXPRESSION ##
     if (is.null(designFormula)|is.na(designFormula)) {
       out.de <- .deseq(data, design[,i, drop=FALSE])
-      out.er <- .edger(data, design[,i, drop=FALSE])
+      out.er <- .edger(data, design[,i,er<- drop=FALSE])
       out.bs <- .bayseq(data, replicates, design[,i, drop=FALSE])
 
       # rownames in the result tables as IDs - for consistency
@@ -398,7 +433,7 @@ recoRdSeqAnalysis  <- function(
         pdf(paste0(outPath, "/", "VENN_", colnames(design)[i],".pdf"), width=10, height=10)
         draw.triple.venn(area1 = length(top.de_pval), area2 = length(top.er_pval), area3 = length(top.bs_pval), n12 = length(intersect(top.de_pval,top.er_pval)), n23 = length(intersect(top.er_pval,top.bs_pval)), n13 = length(intersect(top.bs_pval,top.de_pval)),
                          n123 = length(intersect(top.de_pval,intersect(top.er_pval,top.bs_pval))), category = c("DESeq2", "edgeR", "baySeq"),
-                         col = c("deepskyblue2", "red", "green"))
+                         col = FALSE, fill = c("deepskyblue2", "red", "green"), alpha = 0.3)
         dev.off()
       }
 
