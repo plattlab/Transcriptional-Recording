@@ -404,7 +404,7 @@ recoRdSeqAnalysis  <- function(
     ## DIFFERENTIAL EXPRESSION ##
     if (is.null(designFormula)|is.na(designFormula)) {
       out.de <- .deseq(data, design[,i, drop=FALSE])
-      out.er <- .edger(data, design[,i,er<- drop=FALSE])
+      out.er <- .edger(data, design[,i, drop=FALSE])
       out.bs <- .bayseq(data, replicates, design[,i, drop=FALSE])
 
       # rownames in the result tables as IDs - for consistency
