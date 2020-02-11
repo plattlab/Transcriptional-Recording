@@ -95,39 +95,39 @@ recoRdSeqAnalysis  <- function(
   }
 }
 
-.removeOutliers<-function(data, design, Z_max=2.5)
-{
-  design_o<-design[order(design[,1]),]
-  replicates<-c()
-  rep=1
-  for(rw in 1:dim(design_o)[1]){
-    if(rw>1) {
-      if(isTRUE(all.equal(design_o[rw,],design_o[rw-1,],check.attributes = FALSE)))
-      {
-        replicates<-c(replicates,rep)
-      } else {
-        rep=rep+1
-        replicates<-c(replicates,rep)
-      }
-    } else {
-      replicates<-c(replicates,rep)
-    }
-  }
-  data_o<-data[, ,match(rownames(design_o),colnames(data))]
-  rep_rm<-data.frame(replicates, colSums(data_o))
-  rownames(rep_rm)<-rownames(design_o)
-  replicates<-unique(replicates)
-  Z<-c()
-  for(i in 1:length(replicates)){
-    xm<-median(rep_rm[which(rep_rm[,1]==replicates[i]),2])
-    mad<-median(abs(rep_rm[which(rep_rm[,1]==replicates[i]),2]-xm))
-    Z<-c(Z,0.675*(rep_rm[which(rep_rm[,1]==replicates[i]),2]-xm)/mad)
-  }
-  design_o<-design_o[-which(abs(Z)>Z_max),]
-  design<-design[which(rownames(design)%in%rownames(design_o)),]
-  data<-data[,which(colnames(data)%in%rownames(design))]
-  list(data,design)
-}
+# .removeOutliers<-function(data, design, Z_max=2.5)
+# {
+#   design_o<-design[order(design[,1]),]
+#   replicates<-c()
+#   rep=1
+#   for(rw in 1:dim(design_o)[1]){
+#     if(rw>1) {
+#       if(isTRUE(all.equal(design_o[rw,],design_o[rw-1,],check.attributes = FALSE)))
+#       {
+#         replicates<-c(replicates,rep)
+#       } else {
+#         rep=rep+1
+#         replicates<-c(replicates,rep)
+#       }
+#     } else {
+#       replicates<-c(replicates,rep)
+#     }
+#   }
+#   data_o<-data[, ,match(rownames(design_o),colnames(data))]
+#   rep_rm<-data.frame(replicates, colSums(data_o))
+#   rownames(rep_rm)<-rownames(design_o)
+#   replicates<-unique(replicates)
+#   Z<-c()
+#   for(i in 1:length(replicates)){
+#     xm<-median(rep_rm[which(rep_rm[,1]==replicates[i]),2])
+#     mad<-median(abs(rep_rm[which(rep_rm[,1]==replicates[i]),2]-xm))
+#     Z<-c(Z,0.675*(rep_rm[which(rep_rm[,1]==replicates[i]),2]-xm)/mad)
+#   }
+#   design_o<-design_o[-which(abs(Z)>Z_max),]
+#   design<-design[which(rownames(design)%in%rownames(design_o)),]
+#   data<-data[,which(colnames(data)%in%rownames(design))]
+#   list(data,design)
+# }
 .deseq<-function(data, design, designFormula, output="result") # output can also be "rlog" for rlog transformed counts
 {
   data<-apply(data, c(1,2), round)
