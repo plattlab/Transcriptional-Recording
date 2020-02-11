@@ -56,7 +56,7 @@ recoRdSeqAnalysis  <- function(
   }
   data<-as.data.frame(DEList[[1]])
   design<-as.data.frame(DEList[[2]])
-  DEList<-.removeOutliers(data, design)
+  # DEList<-.removeOutliers(data, design)
   if(!is.null(totalCountsFile)){
     totalCounts<-as.data.frame(DEList[[3]])
   }
