@@ -5,7 +5,7 @@ Date: 2018-12-20
 Title: Collection of R functions used for Record-seq
 Author: Tanmay Tanna, Michal Okoniewski
 Maintainer: Tanmay Tanna  <ttanna@student.ethz.ch>
-Depends: R (>= 3.5.0), ggplot2, VennDiagram,  pheatmap, ggfortify, cluster, DESeq2, edgeR, baySeq, readr, readxl, reshape2, gplots, RColorBrewer
+Depends: R (>= 3.5.0), ggplot2, VennDiagram,  pheatmap, ggfortify, cluster, DESeq2, edgeR, baySeq, readr, readxl, reshape2, gplots, RColorBrewer, EnhancedVolcano, umi
 biocViews:
 Suggests: 
 Imports: 
