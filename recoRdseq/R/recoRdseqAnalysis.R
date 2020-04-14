@@ -4,7 +4,7 @@ invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
 
-.zscore<-function(x)
+zscorestandardize<-function(x)
 {
  (x- mean(x)) /sd(x)
 }
@@ -47,7 +47,7 @@ data<-data[,rownames(design)]
 list(data,design)
 }
 
-.InputProcess <- function(data, design, totalCounts, minCountsPerSample=1000) {
+recoRdseq.preprocess <- function(data, design, totalCounts, minCountsPerSample=1000) {
 data<-data[,rownames(design)]
 idx <- which(colSums(data)<minCountsPerSample)
 if (length(idx)>0) {
@@ -63,6 +63,40 @@ if(!missing(totalCounts)){
 DEList
 }
 
+recoRdseq.DE <- function(data, design, designFormula, tool="DESeq2")
+{
+  if(tool=='DESeq2'){
+    out<-.deseq(data, design, designFormula, output="result")
+  }
+  if(tool=='edgeR'){
+    out<-.edger(data, design, designFormula, output="result")
+  }
+  if(tool=='baySeq'){
+    replicates<-.findreplicates(design)
+    out<-.bayseq(data, replicates, design)
+  }
+}
+
+recoRdseq.transform <- function(data, design, transformation='vst')
+{
+  if (transformation=="log2"){
+    # log2 table of counts data
+    data_transformed <- as.data.frame(apply(data, c(1,2), function(x) log2(x+1)))
+  } else if (transformation=="rlog"){
+    data_transformed <- .deseq(data, design, output = "rlog")
+  } else if (transformation=="vst"){
+    data_transformed <- .deseq(data, design, output = "vst")
+  } else if (transformation=="tmm"){
+    data_transformed <- .edger(data, design, output = "tmm")
+    data_transformed <- as.data.frame(apply(data_transformed, c(1,2), function(x) log2(x+1)))
+  } else if (transformation=="thinCounts"){
+    minLibSize <- min(colSums(data, na.rm = FALSE, dims = 1), na.rm = FALSE)
+    data_transformed <- thinCounts(data, prob=NULL, target.size=minLibSize)
+    data_transformed <- as.data.frame(apply(data_transformed, c(1,2), function(x) log2(x+1)))
+  }
+  data_transformed
+}
+
 .deseq<-function(data, design, designFormula, output="result") ## output can also be "rlog" for rlog transformed counts
 {
 data<-apply(data, c(1,2), round)
@@ -72,7 +106,11 @@ for (i in 1:dim(design)[2]) {
 }
 colnames(colData)<-colnames(design)
 if (missing(designFormula)){
+  if(length(colnames(colData))==1){
   designFormula=paste0("~", colnames(colData))
+  } else {
+  designFormula=paste0("~", colnames(colData)[1])
+  }
 }
 dds <- DESeqDataSetFromMatrix(countData = data,colData = colData,design = formula(designFormula) )
 if(dim(design)[2]==1 & length(unique(design[,1]))==2){
@@ -125,7 +163,11 @@ for (i in 1:dim(design)[2]) {
 }
 colnames(colData)<-colnames(design)
 if (missing(designFormula)) {
-  designFormulaMatrix<-model.matrix(formula(paste0("~", colnames(colData))), colData)
+  if(length(colnames(colData))==1){
+    designFormulaMatrix<-model.matrix(formula(paste0("~", colnames(colData))), colData)
+    } else {
+      designFormulaMatrix<-model.matrix(formula(paste0("~", colnames(colData)[1])), colData)
+    }
 } else {
   designFormulaMatrix<-model.matrix(formula(designFormula), colData)
 }
@@ -164,7 +206,7 @@ grid::grid.draw(heatmap$gtable)
 dev.off()
 }
 
-.FilterByPAdj <- function(genesDE,p=0.05, n=NULL)
+recoRdseq.filterDEG <- function(genesDE,p=0.05, n=NULL)
 {
 if(is.null(n)){
   ord <- which(genesDE$padj<p)
@@ -187,13 +229,6 @@ mapdesign<-data.frame(d=unique(design_collapsed), n=1:length(unique(design_colla
 replicates<-mapdesign$n[match(design_collapsed,mapdesign$d)]
 }
 
-
-.save_pheatmap_pdf <- function(heatmap, filename) {
-pdf(filename)
-grid::grid.newpage()
-grid::grid.draw(heatmap$gtable)
-dev.off()
-}
 
 ## NatProt functions
 
@@ -237,13 +272,13 @@ if(!is.null(totalCountsFile)){
   rownames(totalCounts)<-totalCounts[,1]
   totalCounts <- totalCounts[, -1]
   if(processInput) {
-    DEList<-.InputProcess(data=data, design=design, totalCounts=totalCounts, minCountsPerSample=minCountsPerSample)
+    DEList<-recoRdseq.preprocess(data=data, design=design, totalCounts=totalCounts, minCountsPerSample=minCountsPerSample)
   } else {
     DEList<-list(data, design, totalCounts)
   }
 } else {
   if(processInput) {
-    DEList<-.InputProcess(data=data, design=design, totalCounts=NULL, minCountsPerSample=minCountsPerSample)
+    DEList<-recoRdseq.preprocess(data=data, design=design, totalCounts=NULL, minCountsPerSample=minCountsPerSample)
   } else {
     DEList<-list(data, design)
   }
@@ -416,12 +451,12 @@ for(i in 1:length(colnames(design))) {
     rownames(out.bs) <- out.bs$geneID
 
     # finding top genes
-    top.de <- .FilterByPAdj(out.de, n=20)
-    top.er <- .FilterByPAdj(out.er, n=20)
-    top.bs <- .FilterByPAdj(out.bs, n=20)
-    top.de_pval <- .FilterByPAdj(out.de)
-    top.er_pval <- .FilterByPAdj(out.er)
-    top.bs_pval <- .FilterByPAdj(out.bs)
+    top.de <- recoRdseq.filterDEG(out.de, n=20)
+    top.er <- recoRdseq.filterDEG(out.er, n=20)
+    top.bs <- recoRdseq.filterDEG(out.bs, n=20)
+    top.de_pval <- recoRdseq.filterDEG(out.de)
+    top.er_pval <- recoRdseq.filterDEG(out.er)
+    top.bs_pval <- recoRdseq.filterDEG(out.bs)
 
     # # union of top 20 genes from DE tools
     union_de[[colnames(design)[i]]] <- union(top.de, union(top.er, top.bs))
@@ -536,10 +571,10 @@ if (!is.null(designFormula)&!is.na(designFormula)){
   out.er <- .edger(data, design[,which(colnames(design)%in%SingleElements), drop=FALSE], designFormula)
 
   # finding top genes
-  top.de <- .FilterByPAdj(out.de, n=30)
-  top.er <- .FilterByPAdj(out.er, n=30)
-  top.de_pval <- .FilterByPAdj(out.de)
-  top.er_pval <- .FilterByPAdj(out.er)
+  top.de <- recoRdseq.filterDEG(out.de, n=30)
+  top.er <- recoRdseq.filterDEG(out.er, n=30)
+  top.de_pval <- recoRdseq.filterDEG(out.de)
+  top.er_pval <- recoRdseq.filterDEG(out.er)
 
   # union of top genes from DE tools
   union_de <- union(top.de, top.er)
