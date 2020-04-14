@@ -48,6 +48,14 @@ list(data,design)
 }
 
 recoRdseq.preprocess <- function(data, design, totalCounts, minCountsPerSample=1000) {
+rownames(data)<-data[,1]
+data<-data[,-c(1:6)]
+rownames(design)<-design[,1]
+design<-design[,-1]
+for(i in 1:length(rownames(design))){
+  colnames(data)[which(grepl(paste0("_",rownames(design)[i],"_"), colnames(data)))]<-rownames(design)[i]
+}
+data<-data[which(rowSums(data)>as.numeric(quantile(rowSums(data))[2])),]
 data<-data[,rownames(design)]
 idx <- which(colSums(data)<minCountsPerSample)
 if (length(idx)>0) {
