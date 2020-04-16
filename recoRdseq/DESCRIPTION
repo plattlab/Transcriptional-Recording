@@ -4,14 +4,15 @@ Version: 0.1-1
 Date: 2018-12-20
 Title: Collection of R functions used for Record-seq
 Author: Tanmay Tanna, Michal Okoniewski
-Maintainer: Tanmay Tanna  <ttanna@student.ethz.ch>
+Maintainer: Tanmay Tanna  <ttanna@ethz.ch>
 Depends: R (>= 3.5.0), ggplot2, VennDiagram,  pheatmap, ggfortify, cluster, DESeq2, edgeR, baySeq, readr, readxl, reshape2, gplots, RColorBrewer, EnhancedVolcano, umap
 biocViews:
 Suggests: 
 Imports: 
 Description: The package includes a toolbox of functions 
   used for the analysis of spacers sequencing data 
-  from the Record-seq method
+  from the Record-seq method.
 License: GPL (>= 2)
 URL: github.com/plattlab/Transcriptional-Recording/recoRdseq
 BugReports: 
+RoxygenNote: 7.1.0

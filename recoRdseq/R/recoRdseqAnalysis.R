@@ -4,9 +4,22 @@ invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
 
+#' Return z-score standardized values
+#'
+#' This function takes in a numerical vector or matrix. It calculates and returns the z-score standardized value of each element. 
+#' 
+#'
+#' @param x input vector or matrix
+#' @return z-score standardized input
+#' @export
+
 zscorestandardize<-function(x)
 {
- (x- mean(x)) /sd(x)
+  if(is.numeric(x)){
+   (x- mean(x)) /sd(x)
+   } else {
+    print('non numeric values!')
+   }
 }
 
 .removeOutliers<-function(data, design, Z_max=3)
@@ -46,6 +59,20 @@ design<-design[-k,]
 data<-data[,rownames(design)]
 list(data,design)
 }
+
+#' Preprocess data for Record-seq analysis
+#'
+#' This function takes in a counts matrix, a design matrix, and (optional) a matrix of cumulative counts per sample.  
+#' It filters and sorts samples in the counts matrices based on the design matrix. Further, it removes samples with a 
+#' cumulative count below minCountsPerSample, and filters lowly expressed genes in the lowest quartile. It outputs a 
+#' list, where the first element is the pre-processed counts matrix, second element is the design matrix, and third (optional)
+#' is the processed cumulative counts matrix. 
+#' @param data input counts matrix as data frame; rows = genes, cols = samples
+#' @param design input design matrix as data frame; rows = samples, cols = design factors
+#' @param totalCounts input cumulative counts matrix as data frame; rows = samples, cols = type of counts
+#' @param minCountsPerSample minimum cumulative counts per sample
+#' @return list of pre-processed files
+#' @export
 
 recoRdseq.preprocess <- function(data, design, totalCounts, minCountsPerSample=1000) {
 rownames(data)<-data[,1]
