@@ -14,11 +14,6 @@ Further, from within a session of R \(using RStudio or an R session within bash 
 > install_github("plattlab/Transcriptional-Recording", subdir="recoRdseq")
 ```
 
-## Installing dependencies
-
-
-
-
 ## License
 
 This repository is licensed under the Apache License Version 2.0
