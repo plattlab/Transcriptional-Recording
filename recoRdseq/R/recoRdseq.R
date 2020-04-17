@@ -25,7 +25,7 @@ zscorestandardize<-function(x)
 .removeOutliers<-function(data, design, Z_max=3)
 {
 replicates<-.findreplicates(design)
-design<-design[order(replicates),]
+design<-design[order(replicates),,drop=FALSE]
 data<-data[,rownames(design)]
 rep_rm<-data.frame(replicates, colSums(data))
 rownames(rep_rm)<-rownames(design)
@@ -54,7 +54,7 @@ k<-c(k,i)
 }
 }
 if(length(k)>0){
-design<-design[-k,]
+design<-design[-k,, drop=FALSE]
 }
 data<-data[,rownames(design)]
 list(data,design)
