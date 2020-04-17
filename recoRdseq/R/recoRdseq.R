@@ -1,5 +1,5 @@
 ## Load Packages ##
-x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap", "patchwork")
+x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap")
 invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
@@ -259,7 +259,7 @@ if(output=="result"){
 }
 
 .save_pheatmap_pdf <- function(heatmap, filename) {
-pdf(filename, width=2.28, height=2.28, pointsize = 5)
+pdf(filename)
 grid::grid.newpage()
 grid::grid.draw(heatmap$gtable)
 dev.off()
@@ -370,11 +370,11 @@ if(rownames(totalCounts)==rownames(design)){
 CountsPlots_figures<-list()
 CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=genomeCounts, x=samples,fill=as.character(CountsPlots[,5])))+
   geom_bar(stat="summary", , funy='mean', width=0.3)+
-  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$genomeCounts))) + theme_pub+plot_annotation()+
+  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$genomeCounts))) + theme_pub+
   xlab("Samples")+ ylab("Mean genome-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
 CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=plasmidCounts, x=samples,fill=as.character(CountsPlots[,5])))+
   geom_bar(stat="summary", , funy='mean', width=0.3)+
-  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$plasmidCounts))) + theme_pub+plot_annotation()+
+  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$plasmidCounts))) + theme_pub+
   xlab("Samples")+ ylab("Mean plasmid-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
 CountsPlots_figures
 ## For calculating mean counts and plotting with SEs ##
@@ -398,12 +398,12 @@ CountsPlots_figures
 # CountsPlots_figures<-list()
 # CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=MeanGenomeCounts, x=as.character(CountsPlots[,1])))+
 #   geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_pub+plot_annotation()+
+#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_pub+
 #   geom_errorbar(ymin=MeanGenomeCounts-GenomeCountSEs, ymax=MeanGenomeCounts+GenomeCountSEs,linetype=5, width = 0.1, color="darkblue")+
 #   xlab(colnames(design)[1])+ ylab("Mean genome-mapping spacer counts")
 # CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=MeanPlasmidCounts, x=as.character(CountsPlots[,1])))+
 #   geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_pub+plot_annotation()+ ylab("Mean plasmid-mapping spacer counts")+
+#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_pub+ ylab("Mean plasmid-mapping spacer counts")+
 #   geom_errorbar(ymin=MeanPlasmidCounts-PlasmidCountSEs, ymax=MeanPlasmidCounts+PlasmidCountSEs,linetype=5, width = 0.1, color="darkblue" )+
 #   xlab(colnames(design)[1])
 # CountsPlots_figures
@@ -415,7 +415,6 @@ CountsPlots_figures
 
 data<-as.data.frame(DEList[[1]])
 design<-as.data.frame(DEList[[2]])
-cols<- colorRampPalette(c("dodgerblue4", "white","violetred4"))(256)
 if(!is.null(totalCountsFile)){
   totalCounts<-as.data.frame(DEList[[3]])
 }
@@ -476,9 +475,9 @@ for(i in 1:length(colnames(design))) {
     GeneBoxPlots$SampleIDs<-as.character(rep(paste0('S',1:dim(data)[2]), dim(GeneBoxPlots)[1]/dim(data)[2]))
     GeneBoxPlots$SampleIDs<-factor(GeneBoxPlots$SampleID, GeneBoxPlots$SampleID[1:dim(data)[2]])
     ggplot(data=GeneBoxPlots, aes(x=SampleIDs,y=transformed_SpacerCounts))+
-      geom_boxplot(aes(fill=design))+theme_pub+plot_annotation()+
+      geom_boxplot(aes(fill=design))+theme_pub+
       xlab("Sample ID") + ylab(paste0(as.character(transformation), " transformed gene-mapping spacer counts"))+ggtitle(paste0(as.character(transformation), " transformed gene-mapping spacer counts for top ", as.character(no), " genes"))+theme(axis.text.x = element_text(angle = 90, hjust = 1))
-    ggsave(paste0(outPath, "/GeneBoxPlots_", colnames(design)[i],".pdf"), width = 58, height = 58, units = 'mm')
+    ggsave(paste0(outPath, "/GeneBoxPlots_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
   }
 
   # PCA ##
@@ -492,14 +491,14 @@ for(i in 1:length(colnames(design))) {
     all_pca[,no+1]<-as.character(design[,i])
     colnames(all_pca)[no+1]<-colnames(design)[i]
     colnames(all_pca)[1:no]<-1:no
-    autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_pub+plot_annotation()+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
-    ggsave(paste0(outPath, "/PCA_", colnames(design)[i],".pdf"), width = 58, height = 58, units = 'mm')
+    autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_pub+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
+    ggsave(paste0(outPath, "/PCA_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
     if(clustering){
       autoplot(fanny(all_pca[,1:no], K), data = all_pca, size=4,shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') + theme_pub + ggtitle(paste0("FANNY clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
-      ggsave(paste0(outPath, "/FANNY_", colnames(design)[i],".pdf"), width = 58, height = 58, units = 'mm')
+      ggsave(paste0(outPath, "/FANNY_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
       set.seed(1)
       autoplot(kmeans(all_pca[,1:no], K), data = all_pca, size=4, shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') +  theme_pub + ggtitle(paste0("K-means clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
-      ggsave(paste0(outPath, "/KMeans_", colnames(design)[i],".pdf"), width = 58, height = 58, units = 'mm')
+      ggsave(paste0(outPath, "/KMeans_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
     }
   }
 
@@ -550,20 +549,20 @@ for(i in 1:length(colnames(design))) {
       colors<-c(colors, .ggplot2Col(length(unique(design[,i])))[which(unique(design[,i])==design[j,i])])
     }
     colors_corr <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
-    out_union <-  pheatmap(data_transformed[union_de_pval[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "heatmap for union of DE genes from all tools")
+    out_union <-  pheatmap(data_transformed[union_de_pval[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "heatmap for union of DE genes from all tools")
     if(length(intersect_DE[[colnames(design)[i]]])>2) {
-      out_intersect<-pheatmap(data_transformed[intersect_DE[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "heatmap for intersect of DE genes from all tools")
+      out_intersect<-pheatmap(data_transformed[intersect_DE[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "heatmap for intersect of DE genes from all tools")
     }
 
     if(length(intersect_DE[[colnames(design)[i]]])>2){
-      heatmap<-pheatmap(data_transformed[intersect_DE[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "intersect of significant DE genes (adjusted p-val < 0.05) from all tools")
+      heatmap<-pheatmap(data_transformed[intersect_DE[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "intersect of significant DE genes (adjusted p-val < 0.05) from all tools")
       .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_intersect_", colnames(design)[i],".pdf"))
       }
-    heatmap<-pheatmap(data_transformed[union_de[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "union of top 20 DE genes from all tools")
+    heatmap<-pheatmap(data_transformed[union_de[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "union of top 20 DE genes from all tools")
     .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_union_top20_", colnames(design)[i],".pdf"))
-    heatmap<-pheatmap(data_transformed[union_de_pval[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "union of significant DE genes (adjusted p-val < 0.05) from all tools")
+    heatmap<-pheatmap(data_transformed[union_de_pval[[colnames(design)[i]]], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "union of significant DE genes (adjusted p-val < 0.05) from all tools")
     .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_union_", colnames(design)[i],".pdf"))
-    heatmap<-pheatmap(data_transformed[o[1:50], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "top 50 genes sorted by variance")
+    heatmap<-pheatmap(data_transformed[o[1:50], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "top 50 genes sorted by variance")
     .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_topvariance_", colnames(design)[i],".pdf"))
     pdf(paste0(outPath, "/", "heatmaps_correlation_", colnames(design)[i],".pdf"))
       heatmap.2(cor(data), trace="none",RowSideColors = as.character(colors), col=colors_corr, ColSideColors = as.character(colors), margins = c(10,10))
@@ -660,20 +659,20 @@ if (!is.null(designFormula)&!is.na(designFormula)){
 
   annot_col<-as.data.frame(design[,which(colnames(design)%in%SingleElements), drop=FALSE])
   colors_corr <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
-  out_union <-  pheatmap(data_transformed[union_de, ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "heatmap for union of DE genes from all tools")
+  out_union <-  pheatmap(data_transformed[union_de, ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "heatmap for union of DE genes from all tools")
   if(length(intersect_DE)>2) {
-    out_intersect<-pheatmap(data_transformed[intersect_DE, ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "heatmap for intersect of DE genes from all tools")
+    out_intersect<-pheatmap(data_transformed[intersect_DE, ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "heatmap for intersect of DE genes from all tools")
   }
 
   if(length(intersect_DE)>2){
-    heatmap<-pheatmap(data_transformed[intersect_DE, ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "intersect of significant DE genes (adjusted p-val < 0.05) from all tools")
+    heatmap<-pheatmap(data_transformed[intersect_DE, ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "intersect of significant DE genes (adjusted p-val < 0.05) from all tools")
     .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_intersect_", designFormula,".pdf"))
   }
-  heatmap<-pheatmap(data_transformed[union_de, ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "union of top 20 DE genes from all tools")
+  heatmap<-pheatmap(data_transformed[union_de, ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "union of top 20 DE genes from all tools")
   .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_union_top20_", designFormula,".pdf"))
-  heatmap<-pheatmap(data_transformed[union_de_pval, ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "union of significant DE genes (adjusted p-val < 0.05) from all tools")
+  heatmap<-pheatmap(data_transformed[union_de_pval, ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "union of significant DE genes (adjusted p-val < 0.05) from all tools")
   .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_union_", designFormula,".pdf"))
-  heatmap<-pheatmap(data_transformed[o[1:50], ], annotation_col = annot_col, fontsize = 5, fontsize_row = 5, fontsize_col = 5, cluster_rows = FALSE, show_colnames = FALSE, color = cols,fontsize_number=5, width=2.28, height=2.28, main = "top 50 genes sorted by variance")
+  heatmap<-pheatmap(data_transformed[o[1:50], ], annotation_col = annot_col, fontsize = 8, fontsize_row = 5, fontsize_col = 7, main = "top 50 genes sorted by variance")
   .save_pheatmap_pdf(heatmap, paste0(outPath, "/", "heatmaps_topvariance_", designFormula,".pdf"))
   pdf(paste0(outPath, "/", "heatmaps_correlation_", designFormula,".pdf"))
   heatmap.2(cor(data), trace="none", col=colors_corr,
@@ -788,20 +787,20 @@ if(!is.null(SpacerInfoFiles_Path)){
       
       ggplot(GC_content_distribution, aes(x=GC_content, y=frequency))+
         geom_bar(stat="identity", fill="deepskyblue3")+
-        theme_pub+plot_annotation()+
+        theme_pub+
         scale_x_continuous(breaks = seq(0, 100, by = 10))+
         xlab("GC content (%)")+
         ylab("Frequency (%)")+
         geom_vline(aes(xintercept=50), linetype=3)
-      ggsave(paste0(outPath,"/SpacerGCcontentDistribution_",colnames(design)[i],"_", designFactors[df], ".pdf"),  width = 58, height = 58, units = 'mm')
+      ggsave(paste0(outPath,"/SpacerGCcontentDistribution_",colnames(design)[i],"_", designFactors[df], ".pdf"),  height = 8.5, width = 10)
       
       
       ggplot(Sequence_Length_freq, aes(x=Sequence_Length, y=Freq))+
         geom_bar(stat="identity", fill="deepskyblue3")+
-        theme_pub+plot_annotation()+
+        theme_pub+
         xlab("Spacer Length")+
         ylab("Frequency (%)")
-      ggsave(paste0(outPath,"/SpacerLengthFrequencies_",colnames(design)[i],"_", designFactors[df], ".pdf"),  width = 58, height = 58, units = 'mm')
+      ggsave(paste0(outPath,"/SpacerLengthFrequencies_",colnames(design)[i],"_", designFactors[df], ".pdf"),  height = 8.5, width = 10)
     }
   }
 }
@@ -845,22 +844,22 @@ SpacerPlots[is.na(SpacerPlots)]=0
 spacerplots<-list()
 spacerplots[[1]]<-ggplot(SpacerPlots, aes(y=MeanUniqueSpacers, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacers))) + theme_pub+plot_annotation()+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacers))) + theme_pub+
   geom_errorbar(ymin=MeanUniqueSpacers-UniqueSpacerSEs, ymax=MeanUniqueSpacers+UniqueSpacerSEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean Unique spacers")
 spacerplots[[2]]<-ggplot(SpacerPlots, aes(y=MeanUniqueSingleAcquisitions, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSingleAcquisitions))) + theme_pub+plot_annotation()+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSingleAcquisitions))) + theme_pub+
   geom_errorbar(ymin=MeanUniqueSingleAcquisitions-UniqueSingleAcquisitionSEs, ymax=MeanUniqueSingleAcquisitions+UniqueSingleAcquisitionSEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean unique single acquisitions")
 spacerplots[[3]]<-ggplot(SpacerPlots, aes(y=MeanUniqueDoubleAcquisitions, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueDoubleAcquisitions))) + theme_pub+plot_annotation()+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueDoubleAcquisitions))) + theme_pub+
   geom_errorbar(ymin=MeanUniqueDoubleAcquisitions-UniqueDoubleAcquisitionSEs, ymax=MeanUniqueDoubleAcquisitions+UniqueDoubleAcquisitionSEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean Unique Double acquisitions")
 spacerplots[[4]]<-ggplot(SpacerPlots, aes(y=MeanUniqueSpacersPerMillionReads, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacersPerMillionReads))) + theme_pub+plot_annotation()+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacersPerMillionReads))) + theme_pub+
   geom_errorbar(ymin=MeanUniqueSpacersPerMillionReads-UniqueSpacersPerMillionReads_SEs, ymax=MeanUniqueSpacersPerMillionReads+UniqueSpacersPerMillionReads_SEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean Unique spacers per million sequencing reads")
 spacerplots
