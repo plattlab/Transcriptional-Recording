@@ -259,9 +259,13 @@ hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
 }
 
 .findreplicates <- function(design){
-design_collapsed<-as.vector(apply( design , 1 , paste0 , collapse = "" ))
-mapdesign<-data.frame(d=unique(design_collapsed), n=1:length(unique(design_collapsed)))
-replicates<-mapdesign$n[match(design_collapsed,mapdesign$d)]
+  if(ncol(design>1)){
+    design_collapsed<-as.vector(apply( design , 1 , paste0 , collapse = "" ))
+  } else {
+    design_collapsed<-as.vector(design[,1])
+  }
+  mapdesign<-data.frame(d=unique(design_collapsed), n=1:length(unique(design_collapsed)))
+  replicates<-mapdesign$n[match(design_collapsed,mapdesign$d)]
 }
 
 
