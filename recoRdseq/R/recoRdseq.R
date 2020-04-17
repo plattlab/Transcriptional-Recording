@@ -1,5 +1,5 @@
 ## Load Packages ##
-x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap")
+x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap", "patchwork")
 invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
@@ -357,7 +357,7 @@ if(!is.null(totalCountsFile)){
   
 }
 
-theme_pub<-theme_minimal()+
+theme_pub+plot_annotation()<-theme_minimal()+
 theme(legend.position="bottom", legend.justification="center", legend.margin=margin(0,0,0,0),legend.box.margin=margin(-10,-10,-10,-10), legend.spacing.y =  unit(0, 'mm'), legend.box='vertical', legend.key.size = unit(0.1, "cm"),legend.key.width = unit(0.1,"cm"), legend.text=element_text(size=5), text = element_text(size=5), panel.grid.minor = element_blank(), axis.text = element_text(size=5, colour='black'), panel.grid.major = element_line(size = 0.24, colour='gray1', linetype = 2))
 
 
@@ -370,11 +370,11 @@ if(rownames(totalCounts)==rownames(design)){
 CountsPlots_figures<-list()
 CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=genomeCounts, x=samples,fill=as.character(CountsPlots[,5])))+
   geom_bar(stat="summary", , funy='mean', width=0.3)+
-  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$genomeCounts))) + theme_pub+
+  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$genomeCounts))) + theme_pub+plot_annotation()+
   xlab("Samples")+ ylab("Mean genome-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
 CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=plasmidCounts, x=samples,fill=as.character(CountsPlots[,5])))+
   geom_bar(stat="summary", , funy='mean', width=0.3)+
-  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$plasmidCounts))) + theme_pub+
+  coord_cartesian(ylim = c(0, 1.2*max(CountsPlots$plasmidCounts))) + theme_pub+plot_annotation()+
   xlab("Samples")+ ylab("Mean plasmid-mapping spacer counts")+theme(axis.text.x = element_text(angle = 90, hjust = 1))
 CountsPlots_figures
 ## For calculating mean counts and plotting with SEs ##
@@ -398,12 +398,12 @@ CountsPlots_figures
 # CountsPlots_figures<-list()
 # CountsPlots_figures[[1]]<-ggplot(CountsPlots, aes(y=MeanGenomeCounts, x=as.character(CountsPlots[,1])))+
 #   geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_pub+
+#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanGenomeCounts))) + theme_pub+plot_annotation()+
 #   geom_errorbar(ymin=MeanGenomeCounts-GenomeCountSEs, ymax=MeanGenomeCounts+GenomeCountSEs,linetype=5, width = 0.1, color="darkblue")+
 #   xlab(colnames(design)[1])+ ylab("Mean genome-mapping spacer counts")
 # CountsPlots_figures[[2]]<-ggplot(CountsPlots, aes(y=MeanPlasmidCounts, x=as.character(CountsPlots[,1])))+
 #   geom_bar(stat="identity", width=0.3, fill="deepskyblue3")+
-#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_pub+ ylab("Mean plasmid-mapping spacer counts")+
+#   coord_cartesian(ylim = c(0, 1.5*max(CountsPlots$MeanPlasmidCounts))) + theme_pub+plot_annotation()+ ylab("Mean plasmid-mapping spacer counts")+
 #   geom_errorbar(ymin=MeanPlasmidCounts-PlasmidCountSEs, ymax=MeanPlasmidCounts+PlasmidCountSEs,linetype=5, width = 0.1, color="darkblue" )+
 #   xlab(colnames(design)[1])
 # CountsPlots_figures
@@ -475,7 +475,7 @@ for(i in 1:length(colnames(design))) {
     GeneBoxPlots$SampleIDs<-as.character(rep(paste0('S',1:dim(data)[2]), dim(GeneBoxPlots)[1]/dim(data)[2]))
     GeneBoxPlots$SampleIDs<-factor(GeneBoxPlots$SampleID, GeneBoxPlots$SampleID[1:dim(data)[2]])
     ggplot(data=GeneBoxPlots, aes(x=SampleIDs,y=transformed_SpacerCounts))+
-      geom_boxplot(aes(fill=design))+theme_pub+
+      geom_boxplot(aes(fill=design))+theme_pub+plot_annotation()+
       xlab("Sample ID") + ylab(paste0(as.character(transformation), " transformed gene-mapping spacer counts"))+ggtitle(paste0(as.character(transformation), " transformed gene-mapping spacer counts for top ", as.character(no), " genes"))+theme(axis.text.x = element_text(angle = 90, hjust = 1))
     ggsave(paste0(outPath, "/GeneBoxPlots_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
   }
@@ -491,13 +491,13 @@ for(i in 1:length(colnames(design))) {
     all_pca[,no+1]<-as.character(design[,i])
     colnames(all_pca)[no+1]<-colnames(design)[i]
     colnames(all_pca)[1:no]<-1:no
-    autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_pub+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
+    autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_pub+plot_annotation()+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
     ggsave(paste0(outPath, "/PCA_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
     if(clustering){
-      autoplot(fanny(all_pca[,1:no], K), data = all_pca, size=4,shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') + theme_pub + ggtitle(paste0("FANNY clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
+      autoplot(fanny(all_pca[,1:no], K), data = all_pca, size=4,shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') + theme_pub+plot_annotation() + ggtitle(paste0("FANNY clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
       ggsave(paste0(outPath, "/FANNY_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
       set.seed(1)
-      autoplot(kmeans(all_pca[,1:no], K), data = all_pca, size=4, shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') +  theme_pub + ggtitle(paste0("K-means clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
+      autoplot(kmeans(all_pca[,1:no], K), data = all_pca, size=4, shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') +  theme_pub+plot_annotation() + ggtitle(paste0("K-means clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
       ggsave(paste0(outPath, "/KMeans_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
     }
   }
@@ -787,7 +787,7 @@ if(!is.null(SpacerInfoFiles_Path)){
       
       ggplot(GC_content_distribution, aes(x=GC_content, y=frequency))+
         geom_bar(stat="identity", fill="deepskyblue3")+
-        theme_pub+
+        theme_pub+plot_annotation()+
         scale_x_continuous(breaks = seq(0, 100, by = 10))+
         xlab("GC content (%)")+
         ylab("Frequency (%)")+
@@ -797,7 +797,7 @@ if(!is.null(SpacerInfoFiles_Path)){
       
       ggplot(Sequence_Length_freq, aes(x=Sequence_Length, y=Freq))+
         geom_bar(stat="identity", fill="deepskyblue3")+
-        theme_pub+
+        theme_pub+plot_annotation()+
         xlab("Spacer Length")+
         ylab("Frequency (%)")
       ggsave(paste0(outPath,"/SpacerLengthFrequencies_",colnames(design)[i],"_", designFactors[df], ".pdf"),  height = 8.5, width = 10)
@@ -844,22 +844,22 @@ SpacerPlots[is.na(SpacerPlots)]=0
 spacerplots<-list()
 spacerplots[[1]]<-ggplot(SpacerPlots, aes(y=MeanUniqueSpacers, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacers))) + theme_pub+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacers))) + theme_pub+plot_annotation()+
   geom_errorbar(ymin=MeanUniqueSpacers-UniqueSpacerSEs, ymax=MeanUniqueSpacers+UniqueSpacerSEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean Unique spacers")
 spacerplots[[2]]<-ggplot(SpacerPlots, aes(y=MeanUniqueSingleAcquisitions, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSingleAcquisitions))) + theme_pub+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSingleAcquisitions))) + theme_pub+plot_annotation()+
   geom_errorbar(ymin=MeanUniqueSingleAcquisitions-UniqueSingleAcquisitionSEs, ymax=MeanUniqueSingleAcquisitions+UniqueSingleAcquisitionSEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean unique single acquisitions")
 spacerplots[[3]]<-ggplot(SpacerPlots, aes(y=MeanUniqueDoubleAcquisitions, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueDoubleAcquisitions))) + theme_pub+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueDoubleAcquisitions))) + theme_pub+plot_annotation()+
   geom_errorbar(ymin=MeanUniqueDoubleAcquisitions-UniqueDoubleAcquisitionSEs, ymax=MeanUniqueDoubleAcquisitions+UniqueDoubleAcquisitionSEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean Unique Double acquisitions")
 spacerplots[[4]]<-ggplot(SpacerPlots, aes(y=MeanUniqueSpacersPerMillionReads, x=as.character(SpacerPlots[,1])))+
   geom_bar(stat="identity", width=0.3,  fill="deepskyblue3")+
-  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacersPerMillionReads))) + theme_pub+
+  coord_cartesian(ylim = c(0, 1.5*max(SpacerPlots$MeanUniqueSpacersPerMillionReads))) + theme_pub+plot_annotation()+
   geom_errorbar(ymin=MeanUniqueSpacersPerMillionReads-UniqueSpacersPerMillionReads_SEs, ymax=MeanUniqueSpacersPerMillionReads+UniqueSpacersPerMillionReads_SEs,linetype=5, width = 0.1, color="darkblue" )+
   xlab(colnames(design)[1]) + ylab("Mean Unique spacers per million sequencing reads")
 spacerplots
