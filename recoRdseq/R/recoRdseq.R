@@ -1,6 +1,6 @@
 ## Load Packages ##
-x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap")
-invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
+# x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap")
+# invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
 
