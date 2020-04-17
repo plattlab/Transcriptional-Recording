@@ -358,7 +358,7 @@ if(!is.null(totalCountsFile)){
 }
 
 theme_pub<-theme_minimal()+
-theme(legend.position="bottom", legend.justification="center", legend.margin=margin(0,0,0,0),legend.box.margin=margin(-10,-10,-10,-10), legend.spacing.y =  unit(0, 'mm'), legend.box='vertical', legend.key.size = unit(0.1, "cm"),legend.key.width = unit(0.1,"cm"), legend.text=element_text(size=5), text = element_text(size=5), panel.grid.minor = element_blank(), axis.text = element_text(size=5, colour='black'), panel.grid.major = element_line(size = 0.24, colour='gray1', linetype = 2))
+theme(legend.position="bottom", legend.justification="center", legend.margin=margin(0,0,0,0),legend.box.margin=margin(-10,-10,-10,-10), legend.spacing.y =  unit(0, 'mm'), legend.box='vertical', legend.key.size = unit(0.1, "cm"),legend.key.width = unit(0.1,"cm"), legend.text=element_text(size=8), text = element_text(size=8), panel.grid.minor = element_blank(), axis.text = element_text(size=8, colour='black'), panel.grid.major = element_line(size = 0.24, colour='gray1', linetype = 2))
 
 
 .PlotCounts <- function(totalCounts, design){
