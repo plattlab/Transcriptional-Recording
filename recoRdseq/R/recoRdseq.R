@@ -92,7 +92,7 @@ if (length(idx)>0) {
 DEList<-.removeOutliers(data, design)
 if(!missing(totalCounts)){
   design<-DEList[[2]]
-  totalCounts<-totalCounts[, rownames(design)]
+  totalCounts<-totalCounts[rownames(design),]
   DEList<-list(data, design, totalCounts)
 }
 DEList
@@ -492,7 +492,7 @@ for(i in 1:length(colnames(design))) {
     colnames(all_pca)[no+1]<-colnames(design)[i]
     colnames(all_pca)[1:no]<-1:no
     autoplot(prcomp(all_pca[,1:no]), data = all_pca, size=4, colour = colnames(all_pca)[no+1]) + theme_pub+ ggtitle(paste0("PCA plot for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
-    ggsave(paste0(outPath, "/PCA_", colnames(design)[i],".svg"), height = 8.5, width = 10)
+    ggsave(paste0(outPath, "/PCA_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
     if(clustering){
       autoplot(fanny(all_pca[,1:no], K), data = all_pca, size=4,shape = colnames(all_pca)[no+1], frame = TRUE, frame.type = 'norm') + theme_pub + ggtitle(paste0("FANNY clustering for top ", as.character(no)," genes sorted by variance")) + scale_size(guide="none")
       ggsave(paste0(outPath, "/FANNY_", colnames(design)[i],".pdf"), height = 8.5, width = 10)
