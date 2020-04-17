@@ -5,7 +5,7 @@ Date: 2020-04-17
 Title: Record-seq secondary analysis of data
 Author: Tanmay Tanna, Michal Okoniewski
 Maintainer: Tanmay Tanna  <ttanna@ethz.ch>
-Depends: R (>= 3.5.0)
+Depends: R (>= 3.5.0), ggplot2, VennDiagram,  pheatmap, ggfortify, cluster, DESeq2, edgeR, baySeq, readr, readxl, reshape2, gplots, RColorBrewer, EnhancedVolcano, umap
 biocViews:
 Suggests: 
 Imports: ggplot2, VennDiagram,  pheatmap, ggfortify, cluster, DESeq2, edgeR, baySeq, readr, readxl, reshape2, gplots, RColorBrewer, EnhancedVolcano, umap
