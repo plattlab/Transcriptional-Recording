@@ -476,9 +476,8 @@ for(i in 1:length(colnames(design))) {
     GeneBoxPlots$SampleIDs<-as.character(rep(paste0('S',1:dim(data)[2]), dim(GeneBoxPlots)[1]/dim(data)[2]))
     GeneBoxPlots$SampleIDs<-factor(GeneBoxPlots$SampleID, GeneBoxPlots$SampleID[1:dim(data)[2]])
     ggplot(data=GeneBoxPlots, aes(x=SampleIDs,y=transformed_SpacerCounts))+
-      geom_boxplot(aes(fill=design))+theme_pub+plot_annotation()+theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank())+ylab(paste0(as.character(transformation), " transformed gene-mapping spacer counts"))+ggtitle(paste0(as.character(transformation), " transformed gene-mapping spacer counts for top ", as.character(no), " genes"))+theme(axis.text.x = element_text(angle = 90, hjust = 1))
+      geom_boxplot(aes(fill=design))+theme_pub+plot_annotation()+
+      xlab("Sample ID") + ylab(paste0(as.character(transformation), " transformed gene-mapping spacer counts"))+ggtitle(paste0(as.character(transformation), " transformed gene-mapping spacer counts for top ", as.character(no), " genes"))+theme(axis.text.x = element_text(angle = 90, hjust = 1))
     ggsave(paste0(outPath, "/GeneBoxPlots_", colnames(design)[i],".pdf"), width = 58, height = 58, units = 'mm')
   }
 
