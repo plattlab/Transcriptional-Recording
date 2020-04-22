@@ -77,7 +77,7 @@ list(data,design)
 recoRdseq.preprocess <- function(data, design, totalCounts, minCountsPerSample=1000) {
 rownames(data)<-data[,1]
 data<-data[,-c(1:6)]
-rownames(design)<-design[,1]
+rownames(design)<-as.character(design[,1])
 design<-design[,-1, drop=FALSE]
 for(i in 1:length(rownames(design))){
   colnames(data)[which(grepl(paste0("_",rownames(design)[i],"_"), colnames(data)))]<-rownames(design)[i]
