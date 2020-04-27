@@ -189,7 +189,9 @@ if(output=="result"){
       } else {
         res$V1<-res_temp$log2FoldChange
         colnames(res)[ncol(res)]<-paste0("log2FoldChange.",levels(design[,1])[c],"_vs_",levels(design[,1])[1])
+      }
     }
+  }
   res <- res[order(res$padj),]
   b<-match(rownames(res),rownames(data))
   out<-data.frame(geneID=rownames(res),order=b, res)
