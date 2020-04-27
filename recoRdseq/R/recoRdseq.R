@@ -178,7 +178,7 @@ if(dim(design)[2]==1 & length(unique(design[,1]))==2){
   dds <- DESeq(dds, test="LRT", reduced=~1) ## Likelihood ratio test for multiple groups/factors
 }
 if(output=="result"){
-  if(length(unique(design[,1]))==2)){
+  if(length(unique(design[,1]))==2){
     res <- results(dds)
   } else {
     for(c in 2:length(unique(design[,1]))){
