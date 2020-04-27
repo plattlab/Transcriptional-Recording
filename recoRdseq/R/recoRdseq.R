@@ -178,7 +178,18 @@ if(dim(design)[2]==1 & length(unique(design[,1]))==2){
   dds <- DESeq(dds, test="LRT", reduced=~1) ## Likelihood ratio test for multiple groups/factors
 }
 if(output=="result"){
-  res <- results(dds)
+  if(length(unique(design[,1]))==2)){
+    res <- results(dds)
+  } else {
+    for(c in 2:length(unique(design[,1]))){
+      res_temp<-results(dds, contrast = c(colnames(design)[1], levels(design[,1])[c], levels(design[,1])[1]))
+      if(c==2){
+        res<-res_temp
+        colnames(res)[2]<-paste0("log2FoldChange.",levels(design[,1])[c],"_vs_",levels(design[,1])[1])
+      } else {
+        res$V1<-res_temp$log2FoldChange
+        colnames(res)[ncol(res)]<-paste0("log2FoldChange.",levels(design[,1])[c],"_vs_",levels(design[,1])[1])
+    }
   res <- res[order(res$padj),]
   b<-match(rownames(res),rownames(data))
   out<-data.frame(geneID=rownames(res),order=b, res)
