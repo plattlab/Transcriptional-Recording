@@ -27,6 +27,7 @@ zscorestandardize<-function(x)
 replicates<-.findreplicates(design)
 design<-design[order(replicates),,drop=FALSE]
 data<-data[,rownames(design)]
+replicates<-sort(replicates)
 rep_rm<-data.frame(replicates, colSums(data))
 rownames(rep_rm)<-rownames(design)
 replicates<-unique(replicates)
