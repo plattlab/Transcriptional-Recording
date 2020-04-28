@@ -1,5 +1,5 @@
 ## Load Packages ##
-x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "EnhancedVolcano", "umap", "patchwork")
+x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "umap", "patchwork")
 invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
@@ -304,7 +304,7 @@ hcl(h = (seq(h[1], h[2], length = n)), c = 100, l = 65)
 }
 
 .findreplicates <- function(design){
-  if(ncol(design>1)){
+  if(ncol(design)>1){
     design_collapsed<-as.vector(apply( design , 1 , paste0 , collapse = "" ))
   } else {
     design_collapsed<-as.vector(design[,1])
