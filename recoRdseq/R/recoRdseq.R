@@ -110,10 +110,10 @@ DEList
 #' @return data frame of genes with differential expression information
 #' @export
 
-recoRdseq.DE <- function(data, design, designFormula, tool="DESeq2")
+recoRdseq.DE <- function(data, design, designFormula, tool="DESeq2", independentFiltering=TRUE)
 {
   if(tool=='DESeq2'){
-    out<-.deseq(data, design, designFormula, output="result")
+    out<-.deseq(data, design, designFormula, output="result", independentFiltering=independentFiltering)
   }
   else if(tool=='edgeR'){
     out<-.edger(data, design, designFormula, output="result")
@@ -157,7 +157,7 @@ recoRdseq.transform <- function(data, design, transformation='vst')
   data_transformed
 }
 
-.deseq<-function(data, design, designFormula, output="result") ## output can also be "rlog" for rlog transformed counts
+.deseq<-function(data, design, designFormula, output="result", independentFiltering=TRUE) ## output can also be "rlog" for rlog transformed counts
 {
 data<-apply(data, c(1,2), round)
 colData<-data.frame(row.names = rownames(design))
@@ -180,10 +180,10 @@ if(dim(design)[2]==1 & length(unique(design[,1]))==2){
 }
 if(output=="result"){
   if(length(unique(design[,1]))==2){
-    res <- results(dds)
+    res <- results(dds, independentFiltering=independentFiltering)
   } else {
     for(c in 2:length(unique(design[,1]))){
-      res_temp<-results(dds, contrast = c(colnames(design)[1], levels(design[,1])[c], levels(design[,1])[1]))
+      res_temp<-results(dds, contrast = c(colnames(design)[1], levels(design[,1])[c], levels(design[,1])[1]), independentFiltering=independentFiltering)
       if(c==2){
         res<-res_temp
         colnames(res)[2]<-paste0("log2FoldChange.",levels(design[,1])[c],"_vs_",levels(design[,1])[1])
