@@ -1,6 +1,6 @@
 # Transcriptional Recordings using Record-seq
 
-This repository contains python scripts and a R package for analysing datasets generated using the Record-seq workflow described at https://www.nature.com/articles/s41586-018-0569-1
+This repository contains python scripts and a R package for analysing datasets generated using the Record-seq workflow described at https://www.nature.com/articles/s41596-019-0253-4
 
 ## Getting Started
 
