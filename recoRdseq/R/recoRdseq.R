@@ -133,7 +133,7 @@ recoRdseq.DE <- function(data, design, designFormula, tool="DESeq2", independent
 #' It outputs a transformed counts matrix using the specified transformation.
 #' @param data input counts matrix as data frame; rows = genes, cols = samples
 #' @param design input design matrix as data frame; rows = samples, cols = design factors
-#' @param transformation "log2" (general log2-transformation), "rlog" (regularized log from DESeq2), "vst" (variance stabilizing transform from DESeq2), "tmm" (trimmed mean of m normalization followed by log2 transform), "thinCounts" (downsampling followed by log2 transform)
+#' @param transformation "log2" (general log2-transformation), "rlog" (regularized log from DESeq2), "vst" (variance stabilizing transform from DESeq2), "sizeFactorNorm"(normalization using DESeq2 size factors), "tmm" (trimmed mean of m normalization followed by log2 transform), "thinCounts" (downsampling followed by log2 transform)
 #' @return transformed counts matrix
 #' @export
 
@@ -153,11 +153,13 @@ recoRdseq.transform <- function(data, design, transformation='vst')
     minLibSize <- min(colSums(data, na.rm = FALSE, dims = 1), na.rm = FALSE)
     data_transformed <- thinCounts(data, prob=NULL, target.size=minLibSize)
     data_transformed <- as.data.frame(apply(data_transformed, c(1,2), function(x) log2(x+1)))
+  } else if (transformation=="sizeFactorNorm"){
+    data_transformed <- .deseq(data, design, output = "sizeFactorNorm")
   }
   data_transformed
 }
 
-.deseq<-function(data, design, designFormula, output="result", independentFiltering=TRUE) ## output can also be "rlog" for rlog transformed counts
+.deseq<-function(data, design, designFormula, output="result", independentFiltering=TRUE, lfcshrinkage=TRUE) ## output can also be "rlog" for rlog transformed counts
 {
 data<-apply(data, c(1,2), round)
 colData<-data.frame(row.names = rownames(design))
@@ -176,20 +178,27 @@ dds <- DESeqDataSetFromMatrix(countData = data,colData = colData,design = formul
 if(dim(design)[2]==1 & length(unique(design[,1]))==2){
   dds <- DESeq(dds) ## Wald test for pairwise
 } else {
-  dds <- DESeq(dds, test="LRT", reduced=~1) ## Likelihood ratio test for multiple groups/factors
+  dds <- DESeq(dds, test="LRT", reduced=~1, useT=TRUE, minmu=1e-6, minReplicatesForReplace=Inf) ## Likelihood ratio test for multiple groups/factors
 }
 if(output=="result"){
   if(length(unique(design[,1]))==2){
     res <- results(dds, independentFiltering=independentFiltering)
+    if(lfcshrinkage){
+      res <- lfcShrink(dds,  coef=paste(colnames(colData)[1], levels(colData[,1])[2], "vs", levels(colData[,1])[1], sep = "_"),type="apeglm")
+    }
   } else {
     for(c in 2:length(unique(design[,1]))){
-      res_temp<-results(dds, contrast = c(colnames(design)[1], levels(design[,1])[c], levels(design[,1])[1]), independentFiltering=independentFiltering)
+      res_temp<-results(dds, contrast = c(colnames(colData)[1], levels(colData[,1])[c], levels(colData[,1])[1]), independentFiltering=independentFiltering)
+      if(lfcshrinkage){
+        res_temp <- lfcShrink(dds, coef=paste(colnames(colData)[1], levels(colData[,1])[c], "vs", levels(colData[,1])[1], sep = "_"), type="apeglm")
+      }
       if(c==2){
         res<-res_temp
-        colnames(res)[2]<-paste0("log2FoldChange.",levels(design[,1])[c],"_vs_",levels(design[,1])[1])
+      
+        colnames(res)[2]<-paste0("log2FoldChange.",levels(colData[,1])[c],"_vs_",levels(colData[,1])[1])
       } else {
         res$V1<-res_temp$log2FoldChange
-        colnames(res)[ncol(res)]<-paste0("log2FoldChange.",levels(design[,1])[c],"_vs_",levels(design[,1])[1])
+        colnames(res)[ncol(res)]<-paste0("log2FoldChange.",levels(colData[,1])[c],"_vs_",levels(colData[,1])[1])
       }
     }
   }
@@ -205,7 +214,11 @@ if(output=="result"){
   vsd<-varianceStabilizingTransformation(dds, blind = FALSE)
   data_tf<-as.data.frame(assay(vsd))
   data_tf
+} else if(output=="sizeFactorNorm"){
+  data_tf<- as.data.frame(assay(normTransform(dds)))
+  data_tf
 }
+
 }
 
 .bayseq<-function(data, replicates, design){
