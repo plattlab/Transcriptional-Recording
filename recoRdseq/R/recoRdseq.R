@@ -75,7 +75,7 @@ list(data,design)
 #' @return list of pre-processed files
 #' @export
 
-recoRdseq.preprocess <- function(data, design, totalCounts, minCountsPerSample=1000) {
+recoRdseq.preprocess <- function(data, design, totalCounts, minCountsPerSample=1000, removeLowestGenePercent=25) {
 rownames(data)<-data[,1]
 data<-data[,-c(1:6)]
 rownames(design)<-as.character(design[,1])
@@ -83,7 +83,7 @@ design<-design[,-1, drop=FALSE]
 for(i in 1:length(rownames(design))){
   colnames(data)[which(grepl(paste0("_",rownames(design)[i],"_"), colnames(data)))]<-rownames(design)[i]
 }
-data<-data[which(rowSums(data)>as.numeric(quantile(rowSums(data))[2])),]
+data<-data[which(rowSums(data)>as.numeric(quantile(rowSums(data), probs = seq(0, 1, 0.01))[paste0(removeLowestGenePercent, "%")])),]
 data<-data[,rownames(design)]
 idx <- which(colSums(data)<minCountsPerSample)
 if (length(idx)>0) {
