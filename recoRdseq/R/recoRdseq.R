@@ -1,5 +1,5 @@
 ## Load Packages ##
-x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "baySeq", "readxl", "reshape2",  "gplots", "RColorBrewer", "umap", "patchwork")
+x<-c("ggplot2", "VennDiagram",  "pheatmap", "ggfortify", "cluster", "DESeq2", "edgeR", "readxl", "reshape2",  "gplots", "RColorBrewer", "umap", "patchwork")
 invisible(suppressMessages(lapply(x, require, character.only = TRUE)))
 
 ## UTILITIES
@@ -106,7 +106,7 @@ DEList
 #' @param data input counts matrix as data frame; rows = genes, cols = samples
 #' @param design input design matrix as data frame; rows = samples, cols = design factors
 #' @param designFormula any permitted combination of design factors in the design matrix, starting with "~", eg: "~Treatment+Time"
-#' @param tool package for Differential expression. can be 'DESeq2', 'edgeR' or 'baySeq'
+#' @param tool package for Differential expression. can be 'DESeq2', 'edgeR' 
 #' @return data frame of genes with differential expression information
 #' @export
 
@@ -118,10 +118,10 @@ recoRdseq.DE <- function(data, design, designFormula, tool="DESeq2", independent
   else if(tool=='edgeR'){
     out<-.edger(data, design, designFormula, output="result")
   }
-  else if(tool=='baySeq'){
-    replicates<-.findreplicates(design)
-    out<-.bayseq(data, replicates, design)
-  }
+  # else if(tool=='baySeq'){
+  #   replicates<-.findreplicates(design)
+  #   out<-.bayseq(data, replicates, design)
+  # }
   else{
     stop("invalid DE tool choice!")
   }
@@ -221,25 +221,25 @@ if(output=="result"){
 
 }
 
-.bayseq<-function(data, replicates, design){
-  groups <- list(NDE = c(rep(1,dim(design)[1])))
-  groups[[colnames(design)[1]]]= design[,1]
-  genenames<-rownames(data)
-  data=as.matrix(data)
-  rownames(data)<-1:length(rownames(data))
-  cD <- new("countData", data = data, replicates = replicates, groups = groups)
-  libsizes(cD) <- getLibsizes(cD)
-  cD <- getPriors.NB(cD,  samplesize = 1000, cl = NULL)
-  cD <- getLikelihoods(cD)
-  cD@annotation <- data.frame(annotation = genenames)
-  res<-topCounts(cD,group= colnames(design)[1],number=nrow(data))
-  sizes<-as.numeric(libsizes(cD)/median(libsizes(cD)))
-  baseMean<-rowMeans(t(t(data)/sizes))
-  class<-unique(design[,1])
-  log2FC<-rowMeans(t(t(data[,which(design[,1]==class[2])])/sizes[which(design[,1]==class[2])]))/rowMeans(t(t(data[,which(design[,1]==class[1])])/sizes[which(design[,1]==class[1])])) #reports log2FC of the first two classes by default
-  out<-data.frame(geneID=res$annotation,order=rownames(res),baseMean=baseMean,log2FC=log2FC,padj=res[,dim(res)[2]-1], res[,c((dim(res)[2]-3):dim(res)[2])])
-  out
-}
+# .bayseq<-function(data, replicates, design){
+#   groups <- list(NDE = c(rep(1,dim(design)[1])))
+#   groups[[colnames(design)[1]]]= design[,1]
+#   genenames<-rownames(data)
+#   data=as.matrix(data)
+#   rownames(data)<-1:length(rownames(data))
+#   cD <- new("countData", data = data, replicates = replicates, groups = groups)
+#   libsizes(cD) <- getLibsizes(cD)
+#   cD <- getPriors.NB(cD,  samplesize = 1000, cl = NULL)
+#   cD <- getLikelihoods(cD)
+#   cD@annotation <- data.frame(annotation = genenames)
+#   res<-topCounts(cD,group= colnames(design)[1],number=nrow(data))
+#   sizes<-as.numeric(libsizes(cD)/median(libsizes(cD)))
+#   baseMean<-rowMeans(t(t(data)/sizes))
+#   class<-unique(design[,1])
+#   log2FC<-rowMeans(t(t(data[,which(design[,1]==class[2])])/sizes[which(design[,1]==class[2])]))/rowMeans(t(t(data[,which(design[,1]==class[1])])/sizes[which(design[,1]==class[1])])) #reports log2FC of the first two classes by default
+#   out<-data.frame(geneID=res$annotation,order=rownames(res),baseMean=baseMean,log2FC=log2FC,padj=res[,dim(res)[2]-1], res[,c((dim(res)[2]-3):dim(res)[2])])
+#   out
+# }
 
 .edger<-function(data, design, designFormula, output="result")
 {
@@ -533,37 +533,38 @@ for(i in 1:length(colnames(design))) {
   if (is.null(designFormula)|is.na(designFormula)) {
     out.de <- .deseq(data, design[,i, drop=FALSE])
     out.er <- .edger(data, design[,i, drop=FALSE])
-    out.bs <- .bayseq(data, replicates, design[,i, drop=FALSE])
+    # out.bs <- .bayseq(data, replicates, design[,i, drop=FALSE])
 
     # rownames in the result tables as IDs - for consistency
     rownames(out.de) <- out.de$geneID
     rownames(out.er) <- out.er$geneID
-    rownames(out.bs) <- out.bs$geneID
+    # rownames(out.bs) <- out.bs$geneID
 
     # finding top genes
     top.de <- recoRdseq.filterDEG(out.de, n=20)
     top.er <- recoRdseq.filterDEG(out.er, n=20)
-    top.bs <- recoRdseq.filterDEG(out.bs, n=20)
+    # top.bs <- recoRdseq.filterDEG(out.bs, n=20)
     top.de_pval <- recoRdseq.filterDEG(out.de)
     top.er_pval <- recoRdseq.filterDEG(out.er)
-    top.bs_pval <- recoRdseq.filterDEG(out.bs)
+    # top.bs_pval <- recoRdseq.filterDEG(out.bs)
 
     # # union of top 20 genes from DE tools
-    union_de[[colnames(design)[i]]] <- union(top.de, union(top.er, top.bs))
+    # union_de[[colnames(design)[i]]] <- union(top.de, union(top.er, top.bs))
+    union_de[[colnames(design)[i]]] <- union(top.de,top.er)
     # union of top genes by p value from DE tools
     union_de_pval[[colnames(design)[i]]] <- union(top.de_pval, union(top.er_pval, top.bs_pval))
     # intersect of top genes from DE tools
-    intersect_DE[[colnames(design)[i]]] <- intersect(top.de_pval, intersect(top.er_pval, top.bs_pval))
-
-    ## Venn Diagram ##
-    if (vennDiagrams){
-
-      pdf(paste0(outPath, "/", "VENN_", colnames(design)[i],".pdf"), width=10, height=10)
-      draw.triple.venn(area1 = length(top.de_pval), area2 = length(top.er_pval), area3 = length(top.bs_pval), n12 = length(intersect(top.de_pval,top.er_pval)), n23 = length(intersect(top.er_pval,top.bs_pval)), n13 = length(intersect(top.bs_pval,top.de_pval)),
-                       n123 = length(intersect(top.de_pval,intersect(top.er_pval,top.bs_pval))), category = c("DESeq2", "edgeR", "baySeq"),
-                       col = FALSE, fill = c("deepskyblue2", "red", "green"), alpha = 0.3)
-      dev.off()
-    }
+    # intersect_DE[[colnames(design)[i]]] <- intersect(top.de_pval, intersect(top.er_pval, top.bs_pval))
+    intersect_DE[[colnames(design)[i]]] <- intersect(top.de_pval, top.er_pval)
+    # ## Venn Diagram ##
+    # if (vennDiagrams){
+    # 
+    #   pdf(paste0(outPath, "/", "VENN_", colnames(design)[i],".pdf"), width=10, height=10)
+    #   draw.triple.venn(area1 = length(top.de_pval), area2 = length(top.er_pval), area3 = length(top.bs_pval), n12 = length(intersect(top.de_pval,top.er_pval)), n23 = length(intersect(top.er_pval,top.bs_pval)), n13 = length(intersect(top.bs_pval,top.de_pval)),
+    #                    n123 = length(intersect(top.de_pval,intersect(top.er_pval,top.bs_pval))), category = c("DESeq2", "edgeR", "baySeq"),
+    #                    col = FALSE, fill = c("deepskyblue2", "red", "green"), alpha = 0.3)
+    #   dev.off()
+    # }
 
 
     ## Heatmaps ##
@@ -599,7 +600,7 @@ for(i in 1:length(colnames(design))) {
 
 
     ## write the differential expression results to an output file ##
-    out_union<-data.frame(geneID=out_union$tree_row[["labels"]][out_union$tree_row[["order"]]], padj_DESeq2=NA, padj_edgeR=NA, padj_bayseq=NA)
+      out_union<-data.frame(geneID=out_union$tree_row[["labels"]][out_union$tree_row[["order"]]], padj_DESeq2=NA, padj_edgeR=NA), #padj_bayseq=NA)
     for(ind in 1:dim(out_union)[1]){
       if(out_union$geneID[ind]%in%out.de$geneID){
         out_union$padj_DESeq2[ind]=out.de$padj[which(out.de$geneID==as.character(out_union$geneID[ind]))]
@@ -607,22 +608,22 @@ for(i in 1:length(colnames(design))) {
       if(out_union$geneID[ind]%in%out.er$geneID){
         out_union$padj_edgeR[ind]=out.er$padj[which(out.er$geneID==as.character(out_union$geneID[ind]))]
       }
-      if(out_union$geneID[ind]%in%out.bs$geneID){
-        out_union$padj_bayseq[ind]=out.bs$padj[which(out.bs$geneID==as.character(out_union$geneID[ind]))]
-      }
+      # if(out_union$geneID[ind]%in%out.bs$geneID){
+      #   out_union$padj_bayseq[ind]=out.bs$padj[which(out.bs$geneID==as.character(out_union$geneID[ind]))]
+      # }
     }
     if(length(intersect_DE[[colnames(design)[i]]])>2){
-      out_intersect<-data.frame(geneID=out_intersect$tree_row[["labels"]][out_intersect$tree_row[["order"]]], padj_DESeq2=NA, padj_edgeR=NA, padj_bayseq=NA)
+      out_intersect<-data.frame(geneID=out_intersect$tree_row[["labels"]][out_intersect$tree_row[["order"]]], padj_DESeq2=NA, padj_edgeR=NA) #, padj_bayseq=NA)
       for(ind in 1:dim(out_intersect)[1]){
         out_intersect$padj_DESeq2[ind]=out.de$padj[which(out.de$geneID==as.character(out_intersect$geneID[ind]))]
         out_intersect$padj_edgeR[ind]=out.er$padj[which(out.er$geneID==as.character(out_intersect$geneID[ind]))]
-        out_intersect$padj_bayseq[ind]=out.bs$padj[which(out.bs$geneID==as.character(out_intersect$geneID[ind]))]
+        # out_intersect$padj_bayseq[ind]=out.bs$padj[which(out.bs$geneID==as.character(out_intersect$geneID[ind]))]
       }
       write.csv(out_intersect,   file=paste0(outPath, "/DEgenes_",colnames(design)[i],"_Intersect_SignatureGenes.csv"))
     }
 
     write.csv(out.de, file=paste0(outPath, "/", "DEseq_", colnames(design)[i],".csv"))
-    write.csv(out.bs, file=paste0(outPath, "/", "baySeq_", colnames(design)[i],".csv"))
+    # write.csv(out.bs, file=paste0(outPath, "/", "baySeq_", colnames(design)[i],".csv"))
     write.csv(out.er, file=paste0(outPath, "/", "edgeR_", colnames(design)[i],".csv"))
     write.csv(out_union,   file=paste0(outPath, "/DEgenes_",colnames(design)[i],"_Union.csv"))
   }
