@@ -600,7 +600,7 @@ for(i in 1:length(colnames(design))) {
 
 
     ## write the differential expression results to an output file ##
-      out_union<-data.frame(geneID=out_union$tree_row[["labels"]][out_union$tree_row[["order"]]], padj_DESeq2=NA, padj_edgeR=NA), #padj_bayseq=NA)
+      out_union<-data.frame(geneID=out_union$tree_row[["labels"]][out_union$tree_row[["order"]]], padj_DESeq2=NA, padj_edgeR=NA) #,padj_bayseq=NA)
     for(ind in 1:dim(out_union)[1]){
       if(out_union$geneID[ind]%in%out.de$geneID){
         out_union$padj_DESeq2[ind]=out.de$padj[which(out.de$geneID==as.character(out_union$geneID[ind]))]
